@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prepmaster Fault Decoder v3</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiNFMjY2MUIiLz48cGF0aCBkPSJNMTQgMThoMjJNMTQgMjdoMTZNMTQgMzZoMTJNMTQgNDVoMTAiIHN0cm9rZT0iI0ZGRTNDRiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDQgMjJsMTQgMjVIMzB6IiBmaWxsPSIjZmZmIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik00NCAzMHY4IiBzdHJva2U9IiNFMjY2MUIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSI0NCIgY3k9IjQzIiByPSIyLjEiIGZpbGw9IiNFMjY2MUIiLz48L3N2Zz4K">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiNFMjY2MUIiLz48cGF0aCBkPSJNMTQgMThoMjJNMTQgMjdoMTZNMTQgMzZoMTJNMTQgNDVoMTAiIHN0cm9rZT0iI0ZGRTNDRiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDQgMjJsMTQgMjVIMzB6IiBmaWxsPSIjZmZmIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik00NCAzMHY4IiBzdHJva2U9IiNFMjY2MUIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSI0NCIgY3k9IjQzIiByPSIyLjEiIGZpbGw9IiNFMjY2MUIiLz48L3N2Zz4K">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F1F2EE;--panel:#FBFBF9;--ink:#1F2A30;--muted:#5E6A70;--line:#D6DAD3;--soft:#E7EAE4;
+  --accent:#DE6418;--accent-ink:#fff;--fault:#B3332B;--fault-bg:#F6E3E0;--warn:#9A6410;--warn-bg:#F5ECDA;--info:#4F6E79;--info-bg:#E3ECEE;
+  --night:#2E3B44;--day:#E9D9A6;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --f:"Barlow",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;--fc:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14191B;--panel:#1C2326;--ink:#E5E9E4;--muted:#9AA6AB;--line:#323C40;--soft:#262F33;--fault:#E3675C;--fault-bg:#3A2321;--warn:#D9A04A;--warn-bg:#352B1A;--info:#86A9B4;--info-bg:#1F2E33;--night:#0E1417;--day:#6B5E33}}
+:root[data-theme="dark"]{--bg:#14191B;--panel:#1C2326;--ink:#E5E9E4;--muted:#9AA6AB;--line:#323C40;--soft:#262F33;--fault:#E3675C;--fault-bg:#3A2321;--warn:#D9A04A;--warn-bg:#352B1A;--info:#86A9B4;--info-bg:#1F2E33;--night:#0E1417;--day:#6B5E33}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding:14px 24px;border-bottom:3px solid var(--accent);background:var(--panel)}
+.brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+.brand img{width:38px;height:38px}
+.brand h1{margin:0;font:700 26px/1 var(--fc);letter-spacing:.2px}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.btn{border:1px solid var(--line);background:var(--panel);padding:7px 14px;border-radius:6px;font-weight:600}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:none}
+.wrap{max-width:1380px;margin:0 auto;padding:20px 24px 40px}
+.empty{max-width:640px;margin:48px auto;text-align:left}
+.empty h2{font:700 34px/1.1 var(--fc);margin:0 0 12px}
+.empty p{color:var(--muted);margin:0 0 14px}
+.empty .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.note{font-size:13px;color:var(--muted)}
+.prog{margin:16px 0;display:none}
+.prog .bar{height:6px;background:var(--soft);border-radius:3px;overflow:hidden}
+.prog .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.prog .txt{font-size:13px;color:var(--muted);margin-top:6px}
+/* picker */
+.picker{display:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin-bottom:20px}
+.picker h2{margin:0 0 4px;font:700 24px/1.1 var(--fc)}
+.pk-m{margin-top:16px}
+.pk-m h3{margin:0 0 6px;font:600 18px var(--fc);display:flex;gap:12px;align-items:baseline}
+.pk-m h3 button{font:500 13px var(--f);background:none;border:0;color:var(--accent);padding:0}
+.pk-days{display:flex;flex-wrap:wrap;gap:6px}
+.pk-days label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:5px;padding:3px 9px;font-size:13px;background:var(--bg)}
+.pk-days label small{color:var(--muted)}
+.pk-act{display:flex;gap:10px;align-items:center;margin-top:18px;flex-wrap:wrap}
+/* results */
+.res{display:none}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;flex-wrap:wrap}
+.tabs button{border:0;background:none;padding:8px 16px;font:600 19px var(--fc);color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs .src{margin-left:auto;align-self:center;font-size:12px;color:var(--muted)}
+.sum{display:flex;flex-wrap:wrap;gap:8px 34px;align-items:flex-end;margin-bottom:16px}
+.sum div{display:flex;flex-direction:column}
+.sum b{font:700 36px/1 var(--fc)}
+.sum span{font-size:13px;color:var(--muted)}
+.sum .f b{color:var(--fault)}.sum .w b{color:var(--warn)}
+.ribbon{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px 8px;margin-bottom:16px;overflow-x:auto}
+.ribbon .rh{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px;gap:12px}
+.ribbon .rh button{background:none;border:0;color:var(--accent);padding:0;font-size:13px}
+.rb{display:flex;gap:3px;min-width:min-content}
+.rd{display:flex;flex-direction:column;align-items:center;gap:2px;width:38px;flex:none}
+.rd button{width:100%;height:30px;border:0;border-radius:3px;font:600 13px var(--fc);display:flex;align-items:center;justify-content:center}
+.rd button.d{background:color-mix(in srgb,var(--fault) calc(var(--v)*85%),var(--day) )}
+.rd button.n{background:color-mix(in srgb,var(--fault) calc(var(--v)*85%),var(--night));color:#E6E9E4}
+.rd button.d{color:var(--ink)}
+.rd button.zero{opacity:.55}
+.rd button.sel{outline:3px solid var(--accent);outline-offset:-1px}
+.rd small{font-size:11px;color:var(--muted);white-space:nowrap}
+.ctrl{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-bottom:14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:var(--panel);padding:6px 14px;font-weight:600}
+.seg button.on{background:var(--ink);color:var(--bg)}
+.ctrl input[type=search]{border:1px solid var(--line);border-radius:6px;padding:6px 10px;background:var(--panel);min-width:220px}
+.ctrl label{display:flex;gap:6px;align-items:center;font-size:14px}
+.chip{display:inline-flex;gap:6px;align-items:center;background:var(--accent);color:var(--accent-ink);border-radius:20px;padding:2px 10px;font-size:13px;font-weight:600}
+.chip button{background:none;border:0;color:inherit;padding:0;font-weight:700}
+.grid{display:grid;grid-template-columns:minmax(260px,330px) 1fr;gap:18px;align-items:start}
+.list{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.list button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:10px 14px}
+.list button:last-child{border-bottom:0}
+.list button.on{background:var(--soft);box-shadow:inset 4px 0 0 var(--accent)}
+.list .nm{font:600 18px/1.15 var(--fc)}
+.list .ct{font-size:13px;color:var(--muted)}
+.list .ct .f{color:var(--fault);font-weight:600}.list .ct .w{color:var(--warn);font-weight:600}
+.dbar{height:4px;background:var(--soft);border-radius:2px;margin-top:6px}
+.dbar i{display:block;height:100%;background:var(--fault);border-radius:2px}
+.detail h2{font:700 30px/1.1 var(--fc);margin:0 0 4px}
+.detail .sub{color:var(--muted);font-size:14px;margin-bottom:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--info);border-radius:6px;padding:14px 18px;margin-bottom:12px}
+.card.fault{border-left-color:var(--fault)}.card.warn{border-left-color:var(--warn)}
+.card .ch{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.card h3{margin:0;font:600 21px/1.2 var(--fc)}
+.sev{font-size:12px;font-weight:600;border-radius:3px;padding:1px 7px}
+.sev.fault{background:var(--fault-bg);color:var(--fault)}.sev.warn{background:var(--warn-bg);color:var(--warn)}.sev.info{background:var(--info-bg);color:var(--info)}
+.card .meta{font-size:13px;color:var(--muted);margin-left:auto}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:10px}
+.three h4{margin:0 0 3px;font:600 14px var(--f);color:var(--muted)}
+.three p{margin:0;font-size:14.5px}
+.more{background:none;border:0;color:var(--accent);padding:0;margin-top:10px;font-weight:600;font-size:14px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:8px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);padding:4px 6px}
+td{border-bottom:1px solid var(--soft);padding:5px 6px;vertical-align:top}
+tr.occ{cursor:pointer}tr.occ:hover td{background:var(--soft)}
+.tw{overflow-x:auto}
+.dn{display:inline-block;width:16px;height:16px;border-radius:3px;vertical-align:-3px;margin-right:4px}
+.dn.d{background:var(--day)}.dn.n{background:var(--night)}
+.near{background:var(--bg);border-radius:4px;padding:8px 10px;font-size:13px}
+.near ul{margin:4px 0 6px;padding-left:18px}
+.near code{display:block;white-space:pre-wrap;word-break:break-all;font-size:12px;color:var(--muted);margin-top:4px}
+.pfd-code{border-bottom:1px dotted var(--muted);cursor:help}
+.dels{margin-top:28px}
+.dels h2{font:700 26px/1.1 var(--fc);margin:0 0 4px}
+.drow{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 14px;margin-bottom:8px}
+.drow .dh{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.drow b{font:600 18px var(--fc)}
+.drow .n{margin-left:auto;font:700 22px var(--fc);color:var(--accent)}
+.muted{color:var(--muted)}
+.pfd-route{font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;white-space:nowrap;margin-left:2px}
+.pfd-route:hover{text-decoration:underline}
+.crews{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:16px}
+.crews button{display:flex;gap:12px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 12px}
+.crews button.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.crews .L{font:700 34px/1 var(--fc);color:var(--accent);width:26px;text-align:center}
+.crews .t{font-size:13px;color:var(--muted);line-height:1.35}
+.crews .t b{color:var(--ink);font:600 16px var(--fc)}
+.crl{display:inline-block;min-width:18px;text-align:center;font:700 12px/16px var(--fc);border:1px solid var(--line);border-radius:3px;margin-right:4px;cursor:help}
+.chain{color:var(--muted)}
+footer{max-width:1380px;margin:0 auto;padding:16px 24px 30px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+@media (max-width:900px){.crews{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:1fr}.three{grid-template-columns:1fr}.top{padding:12px 16px}.wrap{padding:16px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiNFMjY2MUIiLz48cGF0aCBkPSJNMTQgMThoMjJNMTQgMjdoMTZNMTQgMzZoMTJNMTQgNDVoMTAiIHN0cm9rZT0iI0ZGRTNDRiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNDQgMjJsMTQgMjVIMzB6IiBmaWxsPSIjZmZmIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik00NCAzMHY4IiBzdHJva2U9IiNFMjY2MUIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSI0NCIgY3k9IjQzIiByPSIyLjEiIGZpbGw9IiNFMjY2MUIiLz48L3N2Zz4K" alt=""><div><h1>Prepmaster Fault Decoder <span style="font-size:15px;color:var(--accent)">v3</span></h1><p>DIAGNOSE logs in plain English · HAG · Autochem · RSPU</p></div></div>
+  <button class="btn pri" id="bFolder">Open Prepmaster folder</button>
+  <button class="btn" id="bFiles">Open log files</button>
+  <button class="btn" id="bRoster" title="Load the PMLB roster dashboard (.html) to update crews and covering">Load roster</button>
+  <button class="btn ghost" id="bClear">Clear</button>
+  <button class="btn ghost" id="bTheme" aria-label="Switch light or dark">◐</button>
+  <input type="file" id="dirIn" webkitdirectory directory multiple hidden>
+  <input type="file" id="fileIn" multiple hidden>
+  <input type="file" id="rosterIn" accept=".html,.htm,.json" hidden>
+</header>
+<div class="wrap">
+  <section class="empty" id="empty">
+    <h2>What went wrong on the Prepmaster, in plain words</h2>
+    <p>Open your <b>Prepmaster file with Decoder</b> folder. The decoder reads each machine's settings (STATE.INI, PM_NO, PM_UN) to name every unit and place, then lets you pick which days of DIAGNOSE logs to read.</p>
+    <p>Already opened the folder once? You can also open DIAGNOSE files on their own – the names are remembered on this computer.</p>
+    <div class="row"><button class="btn pri" data-act="folder">Open Prepmaster folder</button><button class="btn" data-act="files">Open log files</button></div>
+    <p class="note" id="nameNote" style="margin-top:18px"></p>
+  </section>
+  <section class="picker" id="picker"></section>
+  <div class="prog" id="prog"><div class="bar"><i></i></div><div class="txt"></div></div>
+  <section class="res" id="res">
+    <div class="tabs" id="tabs"></div>
+    <div class="sum" id="sum"></div>
+    <div class="ribbon" id="ribbon"></div>
+    <div class="crews" id="crews" aria-label="Crews"></div>
+    <div class="ctrl">
+      <div class="seg" id="view"><button data-v="eq" class="on">By equipment</button><button data-v="fault">By fault</button></div>
+      <input type="search" id="q" placeholder="Search faults, equipment, sample ID">
+      <label><input type="checkbox" id="showInfo"> Show information items</label>
+      <span id="dayChip"></span>
+      <button class="btn ghost" id="bCsv" style="margin-left:auto">Export CSV</button>
+    </div>
+    <div class="grid"><nav class="list" id="list" aria-label="Equipment"></nav><div class="detail" id="detail"></div></div>
+    <section class="dels" id="dels"></section>
+  </section>
+</div>
+<footer>Prepmaster Fault Decoder v3 · Shift days run 06:00–06:00 (day 06–18, night 18–06) · Hover a name to see its unit, node or position code · Repeats of the same fault within 2 minutes count once; faults on one piece of equipment less than 3 minutes apart form one incident · Crews A–D follow the 28-day sportsman roster (2D 2N 5 off · 2D 3N 4 off · 3D 2N 5 off), fitted to the PMLB roster · Unit state codes read as 1 automatic, 2 offline, 4 manual, 8 breakdown.</footer>
+<script>
+/* ===== Prepmaster Fault Decoder: parser + rules ===== */
+var PFD = (function () {
+  "use strict";
+
+  /* ---------- names: built-in defaults (from STATE.INI comments + PM_NO files) ---------- */
+  var DEFAULT_NAMES = {"HAG":{"nodes":{"2":"Input","3":"Dosing 1","4":"Dosing 2","6":"Mixer 1 : Mixer 2","7":"Oven 1","8":"Oven 2","9":"Oven 3","10":"Oven 4","11":"Oven 5","12":"Oven 6","13":"Transport Oven","14":"Cross transport","15":"Turntable","16":"Transport cleaning","17":"Bromide","18":"Transport belts XRF","19":"Sample handling system","20":"Cleaning","22":"Input","25":"Input magazine","38":"Driver for sample registration","39":"Transport HAG belt","40":"Transport posmo","41":"Transport XRF1 belt","42":"Transport XRF2 belt","43":"Transport XRF3 belt","45":"Sound","50":"Robot","51":"Crucible","52":"Wastebox Robot","53":"Manual output","54":"Customer","55":"Host Computer for TGA ovens","56":"Host Computer XRF 1","58":"Turntable Magazin","59":"ReCal Fusion Parameters of ext samples","60":"PM_PM fuer Lifte","65":"CTM","80":"200 pos. magazine/input belt/output belt","81":"100 pos. tray 1 on magazine","82":"100 pos. tray 2 on magazine","95":"To transfer Statusmessages to the PM in the Control room"},"units":{"2":"Input","3":"Dosing 1","4":"Dosing 2","5":"Dosing 3","6":"Mixer","7":"Oven 1","8":"Oven 2","9":"Oven 3","10":"Oven 4","11":"Oven 5","12":"Oven 6","17":"Bromide dosing","18":"XRF belts","19":"Sample handling","20":"Cleaning station","21":"Park positions","22":"Input","23":"Cleaning station 2","25":"Input magazine","27":"Cooling bead 1","28":"Cooling bead 2","29":"Cooling bead 3","30":"Cooling bead 4","31":"Cooling bead 5","32":"Cooling bead 6","33":"Oven transport / dish balance","34":"Cross transport","35":"Turntable","36":"Cleaning transport","37":"Posmo park positions","38":"Sample registration driver","39":"HAG belt","40":"Posmo transport","41":"XRF 1 belt","42":"XRF 2 belt","43":"XRF 3 belt","44":"Printer","45":"Sound","50":"Robot","51":"Crucible / TGA park","52":"Robot waste box","53":"Manual output","54":"CCLAS link","55":"TGA host PC","56":"XRF 1","57":"XRF 1 changer","58":"Turntable magazine","59":"Fusion parameter recalc","60":"Lift link (PM-PM)","61":"Belt magazine to HAG-4 HF","65":"CTM (LIMS)","70":"TGA 1","71":"TGA 2","72":"TGA 3","73":"TGA 4","75":"Lost samples","80":"200 pos. magazine/input belt/output belt","81":"100 pos. tray 1 on magazine","82":"100 pos. tray 2 on magazine","95":"Status link to control room","191":"Sample handling 2","203":"Dosing 1 (flux)","204":"Dosing 2 (flux)","205":"Dosing 3 (flux)","249":"Cross transport (spare)"},"pos":{"701":{"u":"7","n":"Starting"},"702":{"u":"7","n":"Ramping up"},"703":{"u":"7","n":"Holding"},"704":{"u":"7","n":"Homogenization"},"708":{"u":"7","n":"Waiting for dish"},"709":{"u":"7","n":"Casting"},"713":{"u":"7","n":"LOI done"},"714":{"u":"7","n":"Bad sample"},"715":{"u":"7","n":"Dish transport"},"716":{"u":"7","n":"Dish at cooling"},"717":{"u":"7","n":"Dish at heating"},"718":{"u":"7","n":"Crucible returning"},"719":{"u":"7","n":"Sample in dish"},"748":{"u":"7","n":"Reserved dish cleaning"},"749":{"u":"7","n":"Dish out"},"750":{"u":"7","n":"Dish in oven"},"751":{"u":"7","n":"Crucible in oven"},"752":{"u":"7","n":"Crucible back"},"754":{"u":"7","n":"Dish cooling"},"755":{"u":"7","n":"Dish reserved"},"756":{"u":"7","n":"Dish back to cleaning"},"761":{"u":"7","n":"Bad sample transport"},"765":{"u":"7","n":"Dirty crucible"},"792":{"u":"7","n":"Crucible done"},"801":{"u":"8","n":"Starting"},"802":{"u":"8","n":"Ramping up"},"803":{"u":"8","n":"Holding"},"804":{"u":"8","n":"Homogenization"},"808":{"u":"8","n":"Waiting for dish"},"809":{"u":"8","n":"Casting"},"813":{"u":"8","n":"LOI done"},"814":{"u":"8","n":"Bad sample"},"815":{"u":"8","n":"Dish transport"},"816":{"u":"8","n":"Dish at cooling"},"817":{"u":"8","n":"Dish at heating"},"818":{"u":"8","n":"Crucible returning"},"819":{"u":"8","n":"Sample in dish"},"848":{"u":"8","n":"Reserved dish cleaning"},"849":{"u":"8","n":"Dish out"},"850":{"u":"8","n":"Dish in oven"},"851":{"u":"8","n":"Crucible in oven"},"852":{"u":"8","n":"Crucible back"},"854":{"u":"8","n":"Dish cooling"},"855":{"u":"8","n":"Dish reserved"},"856":{"u":"8","n":"Dish back to cleaning"},"861":{"u":"8","n":"Bad sample transport"},"865":{"u":"8","n":"Dirty crucible"},"892":{"u":"8","n":"Crucible done"},"901":{"u":"9","n":"Starting"},"902":{"u":"9","n":"Ramping up"},"903":{"u":"9","n":"Holding"},"904":{"u":"9","n":"Homogenization"},"908":{"u":"9","n":"Waiting for dish"},"909":{"u":"9","n":"Casting"},"913":{"u":"9","n":"LOI done"},"914":{"u":"9","n":"Bad sample"},"915":{"u":"9","n":"Dish transport"},"916":{"u":"9","n":"Dish at cooling"},"917":{"u":"9","n":"Dish at heating"},"918":{"u":"9","n":"Crucible returning"},"919":{"u":"9","n":"Sample in dish"},"948":{"u":"9","n":"Reserved dish cleaning"},"949":{"u":"9","n":"Dish out"},"950":{"u":"9","n":"Dish in oven"},"951":{"u":"9","n":"Crucible in oven"},"952":{"u":"9","n":"Crucible back"},"954":{"u":"9","n":"Dish cooling"},"955":{"u":"9","n":"Dish reserved"},"956":{"u":"9","n":"Dish back to cleaning"},"961":{"u":"9","n":"Bad sample transport"},"965":{"u":"9","n":"Dirty crucible"},"992":{"u":"9","n":"Crucible done"},"1001":{"u":"10","n":"Starting"},"1002":{"u":"10","n":"Ramping up"},"1003":{"u":"10","n":"Holding"},"1004":{"u":"10","n":"Homogenization"},"1008":{"u":"10","n":"Waiting for dish"},"1009":{"u":"10","n":"Casting"},"1013":{"u":"10","n":"LOI done"},"1014":{"u":"10","n":"Bad sample"},"1015":{"u":"10","n":"Dish transport"},"1016":{"u":"10","n":"Dish at cooling"},"1017":{"u":"10","n":"Dish at heating"},"1018":{"u":"10","n":"Crucible returning"},"1019":{"u":"10","n":"Sample in dish"},"1048":{"u":"10","n":"Reserved dish cleaning"},"1049":{"u":"10","n":"Dish out"},"1050":{"u":"10","n":"Dish in oven"},"1051":{"u":"10","n":"Crucible in oven"},"1052":{"u":"10","n":"Crucible back"},"1054":{"u":"10","n":"Dish cooling"},"1055":{"u":"10","n":"Dish reserved"},"1056":{"u":"10","n":"Dish back to cleaning"},"1061":{"u":"10","n":"Bad sample transport"},"1065":{"u":"10","n":"Dirty crucible"},"1092":{"u":"10","n":"Crucible done"},"1101":{"u":"11","n":"Starting"},"1102":{"u":"11","n":"Ramping up"},"1103":{"u":"11","n":"Holding"},"1104":{"u":"11","n":"Homogenization"},"1108":{"u":"11","n":"Waiting for dish"},"1109":{"u":"11","n":"Casting"},"1113":{"u":"11","n":"LOI done"},"1114":{"u":"11","n":"Bad sample"},"1115":{"u":"11","n":"Dish transport"},"1116":{"u":"11","n":"Dish at cooling"},"1117":{"u":"11","n":"Dish at heating"},"1118":{"u":"11","n":"Crucible returning"},"1119":{"u":"11","n":"Sample in dish"},"1148":{"u":"11","n":"Reserved dish cleaning"},"1149":{"u":"11","n":"Dish out"},"1150":{"u":"11","n":"Dish in oven"},"1151":{"u":"11","n":"Crucible in oven"},"1152":{"u":"11","n":"Crucible back"},"1154":{"u":"11","n":"Dish cooling"},"1155":{"u":"11","n":"Dish reserved"},"1156":{"u":"11","n":"Dish back to cleaning"},"1161":{"u":"11","n":"Bad sample transport"},"1165":{"u":"11","n":"Dirty crucible"},"1192":{"u":"11","n":"Crucible done"},"1201":{"u":"12","n":"Starting"},"1202":{"u":"12","n":"Ramping up"},"1203":{"u":"12","n":"Holding"},"1204":{"u":"12","n":"Homogenization"},"1208":{"u":"12","n":"Waiting for dish"},"1209":{"u":"12","n":"Casting"},"1213":{"u":"12","n":"LOI done"},"1214":{"u":"12","n":"Bad sample"},"1215":{"u":"12","n":"Dish transport"},"1216":{"u":"12","n":"Dish at cooling"},"1217":{"u":"12","n":"Dish at heating"},"1218":{"u":"12","n":"Crucible returning"},"1219":{"u":"12","n":"Sample in dish"},"1248":{"u":"12","n":"Reserved dish cleaning"},"1249":{"u":"12","n":"Dish out"},"1250":{"u":"12","n":"Dish in oven"},"1251":{"u":"12","n":"Crucible in oven"},"1252":{"u":"12","n":"Crucible back"},"1254":{"u":"12","n":"Dish cooling"},"1255":{"u":"12","n":"Dish reserved"},"1256":{"u":"12","n":"Dish back to cleaning"},"1261":{"u":"12","n":"Bad sample transport"},"1265":{"u":"12","n":"Dirty crucible"},"1292":{"u":"12","n":"Crucible done"},"2710":{"u":"27","n":"Cooling"},"2711":{"u":"27","n":"Aircooling"},"2712":{"u":"27","n":"Cooling done"},"2760":{"u":"27","n":"Bead not sucked"},"2762":{"u":"27","n":"Dish clean/stays"},"2790":{"u":"27","n":"Ready output"},"2791":{"u":"27","n":"Dish return"},"2810":{"u":"28","n":"Cooling"},"2811":{"u":"28","n":"Aircooling"},"2812":{"u":"28","n":"Cooling done"},"2860":{"u":"28","n":"Bead not sucked"},"2862":{"u":"28","n":"Dish clean/stays"},"2890":{"u":"28","n":"Ready output"},"2891":{"u":"28","n":"Dish return"},"2910":{"u":"29","n":"Cooling"},"2911":{"u":"29","n":"Aircooling"},"2912":{"u":"29","n":"Cooling done"},"2960":{"u":"29","n":"Bead not sucked"},"2962":{"u":"29","n":"Dish clean/stays"},"2990":{"u":"29","n":"Ready output"},"2991":{"u":"29","n":"Dish return"},"3010":{"u":"30","n":"Cooling"},"3011":{"u":"30","n":"Aircooling"},"3012":{"u":"30","n":"Cooling done"},"3060":{"u":"30","n":"Bead not sucked"},"3062":{"u":"30","n":"Dish clean/stays"},"3090":{"u":"30","n":"Ready output"},"3091":{"u":"30","n":"Dish return"},"3110":{"u":"31","n":"Cooling"},"3111":{"u":"31","n":"Aircooling"},"3112":{"u":"31","n":"Cooling done"},"3160":{"u":"31","n":"Bead not sucked"},"3162":{"u":"31","n":"Dish clean/stays"},"3190":{"u":"31","n":"Ready output"},"3191":{"u":"31","n":"Dish return"},"3210":{"u":"32","n":"Cooling"},"3211":{"u":"32","n":"Aircooling"},"3212":{"u":"32","n":"Cooling done"},"3260":{"u":"32","n":"Bead not sucked"},"3262":{"u":"32","n":"Dish clean/stays"},"3290":{"u":"32","n":"Ready output"},"3291":{"u":"32","n":"Dish return"}},"bits":{},"nodeUnits":{"2":["2"],"3":["3","203"],"4":["4","204"],"5":["5","205"],"6":["6"],"7":["7","27"],"8":["8","28"],"9":["9","29"],"10":["10","30"],"11":["11","31"],"12":["12","32"],"13":["33"],"14":["34","249","21"],"15":["35"],"16":["36"],"17":["17"],"18":["18"],"19":["19","191"],"20":["20","23"],"22":["22"],"25":["25"],"38":["38"],"39":["39"],"40":["40","37"],"41":["41"],"42":["42"],"43":["43"],"44":["44"],"45":["45"],"50":["50","75"],"51":["51"],"52":["52"],"53":["53"],"54":["54"],"55":["55","70","71","72","73"],"56":["56","57"],"58":["58"],"59":["59"],"60":["60","61"],"65":["65"],"80":["80"],"81":["81"],"82":["82"],"95":["95"]},"_raw":{"2":"Input","3":"Dosing 1","4":"Dosing 2","6":"Mixer 1 : Mixer 2 (Oxidizer mixer) (unit 106)","7":"Oven 1","8":"Oven2","9":"Oven3","10":"Oven4","11":"Oven5","12":"Oven6","13":"transport Oven, balance dish","14":"cross transport, balance crucible, park","15":"turntable","16":"Transport cleaning","17":"Bromid","18":"transport belts XRF (like BHP Newman)","19":"Sample handling system","20":"Cleaning","22":"Input","25":"Input magazine","38":"driver for sample registration, Fusion parameters, etc","39":"transport HAG belt","40":"transport posmo (node 37 for park positions)","41":"transport XRF1 belt","42":"transport XRF2 belt","43":"transport XRF3 belt","45":"Sound","50":"Robot (75=Lost samples)","51":"Crucible / TGA Park","52":"Wastebox Robot","53":"Node53 manual output","54":"Customer (CCLAS)","55":"Host Computer for TGA ovens","56":"Host Computer XRF 1","58":"Node58 Turntable Magazin","59":"ReCal Fusion Parameters of ext samples","60":"Node60 PM_PM fuer Lifte","65":"CTM (LIMS)","80":"200 pos. magazine/input belt/output belt","81":"100 pos. tray 1 on magazine","82":"100 pos. tray 2 on magazine","95":"to transfer Statusmessages to the PM in the Control room"}},"Autochem":{"nodes":{"1":"Transfer to HAG","3":"HP-M1500 #1","4":"HP-M1500 #2","6":"HP-MCSA","8":"Cup cleaning and Mag 1,Mag 2","10":"HP-SCD","15":"300 pos. magazine","18":"Barcode reader","48":"Data to Customer","49":"Data to Customer","50":"Magazine management #1","51":"Magazine management #2","52":"Magazine management #3","53":"Magazine management #4","54":"Magazine management #5","63":"Bucket transport of HP-MCSA","64":"Printer","65":"Sound","71":"Main","73":"Dust Collector","95":"Connection to HAG"},"units":{"1":"Transfer to HAG","3":"HP-M1500 #1","4":"HP-M1500 #2","6":"HP-MCSA","8":"Cup transport 1","10":"HP-SCD","15":"300-place magazine","18":"Barcode reader","20":"Cup cleaning and magazines","48":"CCLAS link","49":"CTM link","50":"Production samples","51":"Magazine management #2","52":"Magazine management #3","53":"Magazine management #4","54":"Magazine management #5","61":"Transport from chamber 1","62":"Transport from chamber 2","63":"HP-MCSA bucket transport","64":"Printer","65":"Sound","71":"Main Prepmaster link","73":"Dust collector","95":"HAG link","151":"Input belt","152":"Belt magazine to HAG-4 HF","153":"Output belt / cleaning"},"pos":{"601":{"u":"6","n":"Inserting"},"602":{"u":"6","n":"Crushing"},"603":{"u":"6","n":"Cup is full"},"604":{"u":"6","n":"Cup in transport"},"605":{"u":"6","n":"Sample at transport"},"5002":{"u":"50","n":"Register"},"5003":{"u":"50","n":"Starting"},"5011":{"u":"50","n":"Next sample"},"5012":{"u":"50","n":"Next vial"},"5013":{"u":"50","n":"Next empty vial"},"5014":{"u":"50","n":"Next successful sample"},"5015":{"u":"50","n":"Register vial to carrier 1"},"5016":{"u":"50","n":"Register vial to carrier 2"},"5017":{"u":"50","n":"Register vial to carrier 3"},"5018":{"u":"50","n":"Register vial to carrier 4"},"5019":{"u":"50","n":"Register vial to carrier 5"},"5020":{"u":"50","n":"Prepare"},"5021":{"u":"50","n":"Tray"},"5022":{"u":"50","n":"Register"},"5030":{"u":"50","n":"Error – position in use"}},"bits":{},"nodeUnits":{"1":["1"],"3":["3"],"4":["4"],"6":["6","62","61"],"8":["8","20"],"10":["10"],"15":["15","152","151","153"],"18":["18"],"48":["48"],"49":["49"],"50":["50"],"51":["51"],"52":["52"],"53":["53"],"54":["54"],"63":["63"],"64":["64"],"65":["65"],"71":["71"],"73":["73","74","75","76"],"95":["95"]},"_raw":{"1":"Transfer to HAG","3":"HP-M1500 #1","4":"HP-M1500 #2","6":"HP-MCSA, Cup chamber 2/3, Cup chamber 1","8":"20 Cup cleaning and Mag 1,Mag 2","10":"HP-SCD","15":"300 pos. magazine (/input belt/output belt/Cleaning )","18":"Barcode reader","48":"Data to Customer (CCLASS)","49":"Data to Customer (CTM)","50":"Magazine management #1","51":"Magazine management #2","52":"Magazine management #3","53":"Magazine management #4","54":"Magazine management #5 (Priority)","63":"Bucket transport of HP-MCSA","64":"Printer","65":"Sound","71":"Main","73":"Dust Collector","95":"Connection to HAG"}},"RSPU":{"nodes":{"20":"Cleaning station","21":"Splitter RSD #1","22":"Splitter RSD #2","24":"Chain belt - balance","26":"Moisture balance","31":"Drying Oven 1","32":"Drying Oven 2","33":"Drying Oven 3","34":"Composite","35":"IR Dryer 1","36":"IR Dryer 2","37":"IR Dryer 3","38":"IR Dryer 4","39":"IR Dryer 5","41":"Magazine control of drying oven 1","42":"Magazine control of drying oven 2","43":"Magazine control of drying oven 3","44":"Magazine control of chain belt","48":"Data to Customer","49":"Data to Customer","51":"Herzog sieve shaker","52":"Sieve shaker Sieve Master","53":"Balance","54":"Balance","64":"Printer","65":"Sound","70":"Controling the splitting-sequence","71":"HP-MCSA","73":"Dust Collector","200":"Sieve Cleaning+Weighing","201":"Bucket magazine 1","202":"Bucket magazine 2","203":"Bucket magazine 3","204":"Sieve Weighing","205":"Tray Weighing","206":"Sieve drawer 1","207":"Sieve drawer 2","208":"Sieve drawer 3","209":"Bottle drawer","210":"Robot Splitting/Moisture","240":"Robot Sieving"},"units":{"20":"Cleaning station","24":"Input chain belt (full buckets)","26":"Moisture balance","31":"Drying Oven 1","32":"Drying Oven 2","33":"Drying Oven 3","34":"Composite","35":"IR Dryer 1","36":"IR Dryer 2","37":"IR Dryer 3","38":"IR Dryer 4","39":"IR Dryer 5","41":"Magazine control of drying oven 1","42":"Magazine control of drying oven 2","43":"Magazine control of drying oven 3","44":"Magazine control of chain belt","48":"CCLAS link","49":"CTM link","51":"Herzog sieve shaker","52":"Sieve shaker Sieve Master","53":"Sieve cleaning balance","54":"Sieve weighing balance","64":"Printer","65":"Sound","70":"Controling the splitting-sequence","72":"HP-MCSA link 2","74":"Dust collector 2","75":"Dust collector 3","76":"Dust collector 4","80":"HP-MCSA link 3","200":"Sieve Cleaning+Weighing","201":"Bucket magazine 1","202":"Bucket magazine 2","203":"Bucket magazine 3","204":"Sieve Weighing","205":"Tray Weighing","206":"Sieve drawer 1","207":"Sieve drawer 2","208":"Sieve drawer 3","209":"Bottle drawer","211":"Splitter RSD 1 – part 1","212":"Splitter RSD 1 – part 2","213":"Splitter RSD 1 – part 3","221":"Splitter RSD 2 – part 1","222":"Splitter RSD 2 – part 2","223":"Splitter RSD 2 – part 3","241":"Chain belt – empty buckets","242":"Chain belt – balance"},"pos":{},"bits":{},"nodeUnits":{"20":["20"],"21":["21","211","212","213"],"22":["22","221","222","223"],"24":["24","241","242"],"26":["26"],"31":["31"],"32":["32"],"33":["33"],"34":["34"],"35":["35"],"36":["36"],"37":["37"],"38":["38"],"39":["39"],"41":["41"],"42":["42"],"43":["43"],"44":["44"],"48":["48"],"49":["49"],"51":["51"],"52":["52"],"53":["53"],"54":["54"],"64":["64"],"65":["65"],"70":["70"],"71":["71","72","80"],"73":["73","74","75","76"],"110":["110"],"200":["200"],"201":["201"],"202":["202"],"203":["203"],"204":["204"],"205":["205"],"206":["206"],"207":["207"],"208":["208"],"209":["209"],"210":["210","310"],"240":["240","340","341"]},"_raw":{"20":"Cleaning station","21":"Splitter RSD #1","22":"Splitter RSD #2","24":"Chain belt - balance","26":"Moisture balance","31":"Drying Oven 1","32":"Drying Oven 2","33":"Drying Oven 3","34":"Composite","35":"IR Dryer 1","36":"IR Dryer 2","37":"IR Dryer 3","38":"IR Dryer 4","39":"IR Dryer 5","41":"Magazine control of drying oven 1","42":"Magazine control of drying oven 2","43":"Magazine control of drying oven 3","44":"Magazine control of chain belt","48":"Data to Customer (CCLASS)","49":"Data to Customer (CTM)","51":"Herzog sieve shaker","52":"Sieve shaker Sieve Master","53":"Balange (Sieve balance in sieve cleaning station)","54":"Balange (Sieve weighig)","64":"Printer","65":"Sound","70":"Controling the splitting-sequence (flow chart)","71":"HP-MCSA","73":"Dust Collector","200":"Sieve Cleaning+Weighing","201":"Bucket magazine 1  (near RSDs)","202":"Bucket magazine 2  (Transfer-magazine to sieve-circle)","203":"Bucket magazine 3  (12-position bucket-stand)","204":"Sieve Weighing","205":"Tray Weighing","206":"Sieve drawer 1","207":"Sieve drawer 2","208":"Sieve drawer 3","209":"Bottle drawer","210":"Robot Splitting/Moisture / Robot Splitting/Moisture lost / Sieve rack","240":"Robot Sieving / Robot Sieving lost"}}};
+
+  var STATE_TXT = { 1: "automatic", 2: "offline", 4: "manual", 8: "breakdown" };
+
+  function blankNames() { return { nodes: {}, units: {}, pos: {}, bits: {}, nodeUnits: {} }; }
+
+  /* ---------- INI helpers (for settings folder) ---------- */
+  function iniSections(txt) {
+    var out = [], cur = null, lines = txt.split(/\r?\n/);
+    for (var i = 0; i < lines.length; i++) {
+      var l = lines[i].replace(/^\s*[+*]/, "");
+      var m = l.match(/^\s*\[([^\]]+)\]/);
+      if (m) { cur = { name: m[1].trim(), kv: {}, comment: "" }; out.push(cur); continue; }
+      if (!cur) continue;
+      var kv = l.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/);
+      if (kv && !/^\s*(\/\/|;|,|#)/.test(l)) {
+        var k = kv[1];
+        if (!(k in cur.kv)) cur.kv[k] = kv[2].replace(/^"|"$/g, "").trim();
+      }
+    }
+    return out;
+  }
+
+  /* STATE.INI → node comments + node→units */
+  function parseStateIni(txt, names) {
+    var lines = txt.split(/\r?\n/), lastComment = "", node = null;
+    for (var i = 0; i < lines.length; i++) {
+      var raw = lines[i];
+      var l = raw.replace(/^\s*[+*]/, "");
+      if (/^\s*(;|#)/.test(l)) { lastComment = ""; continue; }
+      var c = l.match(/^\s*\/\/\s*(.+)$/);
+      if (c) {
+        var t = c[1].trim();
+        if (/^[-=]+/.test(t) || /^\[/.test(t) || /Units=/.test(t)) { continue; }
+        lastComment = t; continue;
+      }
+      var s = l.match(/^\s*\[Node_(\d+)\]/);
+      if (s) {
+        node = s[1];
+        if (lastComment && !names.nodes[node]) { names.nodes[node] = cleanComment(lastComment.split(/\s+\/\s+|,\s+/)[0]); (names._raw = names._raw || {})[node] = lastComment; }
+        lastComment = ""; continue;
+      }
+      var u = l.match(/^\s*Units\s*=\s*([0-9 ,]+)/);
+      if (u && node) {
+        var ul = u[1].split(",").map(function (x) { return x.trim(); }).filter(Boolean);
+        names.nodeUnits[node] = ul;
+        var rc = names._raw && names._raw[node];
+        if (rc && ul.length > 1) {
+          var parts = rc.split(/\s+\/\s+|,\s+|\s*:\s+/).map(cleanComment).filter(Boolean);
+          if (parts.length === ul.length) {
+            parts.forEach(function (pn, ix) { if (!names.units[ul[ix]]) names.units[ul[ix]] = pn; });
+            names.nodes[node] = parts[0];
+          }
+        } else if (rc && ul.length === 1 && !names.units[ul[0]]) names.units[ul[0]] = cleanComment(rc.split(/\s+\/\s+/)[0]);
+        continue;
+      }
+      if (/^\s*\[/.test(l)) node = null;
+      if (l.trim() && !/^\s*\/\//.test(l)) lastComment = lastComment && /^\s*[A-Za-z_]+=/.test(l) ? lastComment : lastComment;
+    }
+  }
+  function cleanComment(t) {
+    t = t.replace(/\s*\(.*?\)\s*/g, " ").replace(/\s+/g, " ").replace(/^\s*Node\d+\s*/i, "").replace(/^\d+\s+(?=[A-Z])/, "").trim();
+    t = t.replace(/^(Oven|Ofen)(\d)/i, "$1 $2").replace(/Balange/g, "Balance").replace(/Bromid\b/, "Bromide");
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+
+  /* PM_NO_<node>.dat → unit names and position names */
+  function parsePmNo(node, txt, names) {
+    var secs = iniSections(txt), units = names.nodeUnits[node] || [node], iu = {};
+    secs.forEach(function (s) {
+      var m = s.name.match(/^InternalUnit_(\d+)$/);
+      if (m && s.kv.Name) iu[m[1]] = s.kv.Name;
+    });
+    Object.keys(iu).forEach(function (k) {
+      var un = units[+k];
+      if (un && !names.units[un]) names.units[un] = iu[k];
+    });
+    secs.forEach(function (s) {
+      var m = s.name.match(/^ID_Index_(\d+)$/);
+      if (!m || !s.kv.Name) return;
+      var idx = +m[1], un = units[+(s.kv.InternalUnit || 0)] || units[0];
+      if (!un) return;
+      var key = idx < 100 ? (+un) * 100 + idx : (+un) * 1000 + idx;
+      if (!names.pos[key]) names.pos[key] = { u: un, n: s.kv.Name };
+    });
+  }
+
+  /* PM_UN_<unit>.dat → busy-bit names */
+  function parsePmUn(unit, txt, names) {
+    var secs = iniSections(txt);
+    secs.forEach(function (s) {
+      if (!/^statusBits$/i.test(s.name)) return;
+      var b = {};
+      Object.keys(s.kv).forEach(function (k) {
+        var m = k.match(/^Bit_(\d+)$/);
+        if (m && s.kv[k] && s.kv[k] !== "???") b[m[1]] = s.kv[k];
+      });
+      if (Object.keys(b).length) names.bits[unit] = b;
+    });
+  }
+
+  function mergeNames(base, extra) {
+    var out = JSON.parse(JSON.stringify(base || blankNames()));
+    if (!extra) return out;
+    ["nodes", "units", "pos", "bits", "nodeUnits"].forEach(function (k) {
+      out[k] = out[k] || {};
+      Object.keys(extra[k] || {}).forEach(function (x) { out[k][x] = extra[k][x]; });
+    });
+    return out;
+  }
+
+  /* ---------- naming ---------- */
+  function unitName(N, u) {
+    u = String(u);
+    if (N.units[u]) return N.units[u];
+    if (N.seen && N.seen[u]) return N.seen[u];
+    // single-unit node with comment
+    for (var n in N.nodeUnits) {
+      var us = N.nodeUnits[n];
+      if (us[0] === u && N.nodes[n]) return N.nodes[n];
+    }
+    if (N.nodes[u]) return N.nodes[u];
+    return null;
+  }
+  function nodeName(N, n) {
+    n = String(n);
+    var us = N.nodeUnits[n];
+    if (us && us.length) { var x = unitName(N, us[0]); if (x) return x; }
+    if (N.nodes[n]) return N.nodes[n];
+    return null;
+  }
+  function posName(N, p) {
+    p = +p; if (!p) return null;
+    var e = N.pos[p];
+    var u = p >= 100000 ? Math.floor(p / 1000) : Math.floor(p / 100);
+    var un = unitName(N, u);
+    if (e) return { unit: String(e.u), unitName: unitName(N, e.u) || ("Unit " + e.u), spot: e.n };
+    if (un) return { unit: String(u), unitName: un, spot: null };
+    return null;
+  }
+  function bitsText(N, u, busyHex) {
+    var b = N.bits[String(u)], v = parseInt(busyHex, 16), out = [];
+    if (!b || isNaN(v)) return "";
+    for (var i = 0; i < 16; i++) if ((v >> i) & 1 && b[i] && !/^(Ready|Busy|Syn)/i.test(b[i])) out.push(b[i]);
+    return out.join(", ");
+  }
+
+  /* ---------- rules: what happened / likely cause / what to check ---------- */
+  // sev: fault | warn | info
+  var SIGNALS = {
+    RobotBreakdown: { sev: "fault", eq: "robot", t: "Robot breakdown signal", h: "Prepmaster raised the robot breakdown alarm.", c: "The robot stopped on a fault – usually a safety stop, a gripping or move error, or loss of power to the robot controller.", k: "Read the robot messages around this time (listed under Nearby). Check the FlexPendant event log, clear the cause, then reset the breakdown." },
+    BrokenBeadOven: { sev: "fault", eq: "oven", t: "Broken bead in oven", h: "An oven reported a broken bead.", c: "The fused bead cracked while cooling or when it was released from the dish – often from a dish that is worn or dirty, flux/sample ratio problems, or a cooling step that is too fast.", k: "Remove the broken bead, check the dish surface for wear or build-up, and check the bead on the next sample from the same oven." },
+    BeadBufferWarning: { sev: "warn", eq: "bead buffer", t: "Bead buffer nearly full", h: "Beads are building up in the buffer waiting for the XRF.", c: "The XRF is taking beads more slowly than the ovens are making them, or the XRF is paused.", k: "Check the XRF is in remote mode and measuring, and that the belt to the XRF is moving." },
+    NoBottle: { sev: "info", eq: "bottle drawer", t: "No bottle (operator prompt)", h: "The splitter asked for a bottle.", c: "The bottle drawer is empty – a normal operator prompt, not a fault.", k: "Refill the bottle drawer." },
+    CheckSievesShow: { sev: "info", eq: "sieves", t: "Check sieves (operator prompt)", h: "Prepmaster asked the operator to check the sieves.", c: "A routine prompt from the sieving station.", k: "Inspect the sieves as prompted." },
+    DisplayEvade: { sev: "info", eq: "splitting robot", t: "Robot moved out of the way", h: "The splitting robot moved aside so the operator could get in.", c: "Operator access request – not a fault.", k: "Nothing to fix." }
+  };
+
+  var ALARMS = [
+    { re: /Can not move sample (.+?) to ExitPosition (\d+)/, id: "exit", sev: "info", t: "Sample could not pass to the exit",
+      h: function (m, N) { return "Prepmaster tried to send " + m[1] + " to the exit at " + posLabel(N, m[2]) + " but could not."; },
+      c: "Information, not a fault: the exit place is still taken by an earlier tag, so Prepmaster retries until it clears.",
+      k: "If it keeps repeating for a long time, look at the exit place on the screen for an old tag that should have gone.", pos: 2 },
+    { re: /ModifyActualLocation: Can not move sample (.+?) from (\d+) to (\d+) as the target position is used/, id: "target", sev: "info", t: "Target place already taken",
+      h: function (m, N) { return m[1] + " could not move from " + posLabel(N, m[2]) + " to " + posLabel(N, m[3]) + " because that place already holds a tag."; },
+      c: "Information, not a fault: another tag (often a leftover) sits on the target place.",
+      k: "If the same place shows up again and again, check it on the screen for a tag with no real sample behind it.", pos: 3 },
+    { re: /Decode: No Source data given/, id: "decode", sev: "warn", t: "Route line read an empty value",
+      h: function () { return "A route instruction asked for a worksheet value that was empty."; },
+      c: "A route line reads a worksheet field before it has been filled in, or the field is not used for this sample type.",
+      k: "Usually harmless. If samples stall at the same time, open the Route Decoder for the position involved." },
+    { re: /does already exist in the Lab - can not register sample/, id: "dupreg", sev: "fault", t: "Sample already registered",
+      h: function (m, N, line) { var s = (line.match(/sample\s+(\S+)/) || [])[1]; return "Registration was refused because " + (s ? s + " " : "this sample ") + "is already in the system."; },
+      c: "The same barcode was scanned twice, or an old tag with the same ID was never removed.",
+      k: "Search the sample ID on the Prepmaster screen; delete the stale tag only if the real sample has finished." },
+    { re: /Unable to register '([^']*)'/, id: "regfail", sev: "fault", t: "Registration failed",
+      h: function (m) { var s = (m[1].match(/SIN=([^@]*)/) || [])[1]; return "Prepmaster could not register " + (s || "a new item") + "."; },
+      c: "The registration message was incomplete or the target place was not free.",
+      k: "Check the input place is empty and register the item again." },
+    { re: /Unable to process the WS_UPDATE for (\S+?)\/Pos=(\d+) because .*not on a legal position/, id: "wsupd", sev: "warn", t: "CCLAS update for a moved sample",
+      h: function (m, N) { return "An update for " + m[1] + " arrived from CCLAS but the sample is no longer at " + posLabel(N, m[2]) + "."; },
+      c: "The sample moved or was deleted before the update arrived.",
+      k: "Check the sample's result reached CCLAS; resend from CCLAS if it is missing." },
+    { re: /Unknown datatype '(\d+)' received/, id: "dtype", sev: "info", t: "Message type not understood",
+      h: function (m) { return "A device sent message type " + m[1] + " that this driver does not use."; },
+      c: "Normal chatter from the device – Prepmaster ignores it.",
+      k: "Nothing to fix unless the device also stops responding." }
+  ];
+
+  var ABB_FAULT = /(error state|Stop open|guard stop|mains missing|contactor|collision|failure|fault|lost|overload|limit|interrupt removed)/i;
+
+  function posLabel(N, p) {
+    var x = posName(N, p);
+    if (!x) return "place " + p;
+    return '<span class="pfd-code" title="Position ' + p + " · unit " + x.unit + '">' + esc(x.unitName + (x.spot ? " – " + x.spot : "")) + "</span>" + routeLink(N, p);
+  }
+  var ROUTE_URL = "https://mingfahfong-dev.github.io/Route/";
+  function routeLink(N, p) {
+    if (!N || !N.machine || !p) return "";
+    return ' <a class="pfd-route" href="' + ROUTE_URL + "#m=" + encodeURIComponent(N.machine) + "&pos=" + encodeURIComponent(p) + '" target="_blank" rel="noopener" title="Open position ' + p + ' in the Route Decoder" aria-label="Open position ' + p + ' in the Route Decoder">↗ route</a>';
+  }
+  function eqLabel(N, kind, num) {
+    var nm = kind === "node" ? nodeName(N, num) : unitName(N, num);
+    return nm || (kind === "node" ? "Node " + num : "Unit " + num);
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  /* ---------- machine detection ---------- */
+  var MACH_HINTS = {
+    HAG: [/Oven ?\d|BeadBuffer|CrucibleAtSwingArm|RobotReady|Fusion procedure|Crucible \[/],
+    Autochem: [/MCSAFunnelRdy|Cup_\d_Ready|HAG_TotalState|HP-MCSA|Empty Cup/],
+    RSPU: [/Pos_Filled_|CheckOvenSamplesForSieving|Sizing_|Moisture_|Tara is with/]
+  };
+
+  /* ---------- parser state ---------- */
+  function newRun(machine, names) {
+    var N = mergeNames(names); N.seen = {}; N.machine = machine;
+    return { machine: machine, N: N, events: [], deletions: [], unitState: {}, ops: [], days: {}, first: null, last: null, lines: 0, score: { HAG: 0, Autochem: 0, RSPU: 0 } };
+  }
+
+  var LINE_RE = /^(\d{4}-\d{2}-\d{2})\s+(\d{2}):(\d{2}):(\d{2})\s+\d+\s+(!! ALARM !!|Msg|DEBUG|PM>|PM<)\s+([^:]+):\s?(.*)$/;
+
+  function tsOf(d, h, mi, s) { return Date.parse(d + "T" + h + ":" + mi + ":" + s); }
+  function shiftDay(ts) { var x = new Date(ts - 6 * 3600e3); return x.getFullYear() + "-" + pad(x.getMonth() + 1) + "-" + pad(x.getDate()); }
+  function isNight(ts) { var h = new Date(ts).getHours(); return h >= 18 || h < 6; }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+  function addEvent(R, e) {
+    // merge repeats of the same thing within 2 minutes
+    var key = e.rule + "|" + e.eqKey + "|" + (e.mergeKey || "");
+    var prev = R._lastByKey && R._lastByKey[key];
+    if (prev && e.ts - prev.tsLast <= 120000) { prev.count++; prev.tsLast = e.ts; return prev; }
+    e.count = 1; e.tsLast = e.ts; e.day = shiftDay(e.ts); e.night = isNight(e.ts);
+    R.events.push(e); (R._lastByKey = R._lastByKey || {})[key] = e;
+    return e;
+  }
+
+  function feed(R, line) {
+    R.lines++;
+    // quick prefilter
+    if (line.length < 30) return;
+    var tag = line.substr(25, 4);
+    var hit = tag === "!! A" || line.indexOf("GenerateAlarmSignal") > 0 || line.indexOf("Did change unit") > 0 || line.indexOf("UNIT_STATE@") > 0 ||
+      line.indexOf("Description:") > 0 || line.indexOf("has deleted") > 0 || line.indexOf("Send Command [") > 0 || line.indexOf("SYN request") > 0 ||
+      line.indexOf("is ERROR. Inform") > 0 || line.indexOf("monitoring errror") > 0;
+    var m = hit ? line.match(LINE_RE) : null;
+    if (!m) {
+      if (R.lines % 50 === 0 && R.lines < 200000) scoreMachine(R, line);
+      if (!R.first && /^\d{4}-\d{2}-\d{2}/.test(line)) { var q = line.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}):(\d{2}):(\d{2})/); if (q) R.first = tsOf(q[1], q[2], q[3], q[4]); }
+      if (R.lines % 200 === 0) { var q2 = line.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}):(\d{2}):(\d{2})/); if (q2) { var t2 = tsOf(q2[1], q2[2], q2[3], q2[4]); if (!R.first || t2 < R.first) R.first = t2; if (!R.last || t2 > R.last) R.last = t2; R.days[shiftDay(t2)] = 1; } }
+      return;
+    }
+    var ts = tsOf(m[1], m[2], m[3], m[4]), kind = m[5], src = m[6].trim(), msg = m[7];
+    if (!R.first || ts < R.first) R.first = ts; if (!R.last || ts > R.last) R.last = ts;
+    R.days[shiftDay(ts)] = 1;
+    scoreMachine(R, line);
+    var nodeM = src.match(/^Node_(\d+)/), node = nodeM ? nodeM[1] : null;
+
+    /* 1. unit state changes */
+    var sm = msg.match(/Did change unit (.+?) \(Index=\d+->Unit=(\d+)\) to State =([0-9A-Fa-f]+)h; Busy=([0-9A-Fa-f]+)h; ErroCode=([0-9A-Fa-f]+)h/);
+    if (sm) { R.N.seen[sm[2]] = R.N.seen[sm[2]] || sm[1]; unitState(R, ts, sm[2], parseInt(sm[3], 16), sm[4], sm[5] + "h", line); return; }
+    var us = msg.match(/UNIT_STATE@UNIT=(\d+)@BUSY=(\d+)@STATE=(\d+)@NAME=([^@]*)@ERROR=(\d+)/);
+    if (us) { R.N.seen[us[1]] = R.N.seen[us[1]] || us[4]; unitState(R, ts, us[1], +us[3], (+us[2]).toString(16), us[5], line); return; }
+
+    /* 2. robot controller (ABB) event messages */
+    var ab = msg.match(/^(\d{4,6}):\s+(.+?)\s{2,}Description:\s*(.*)$/);
+    if (ab) {
+      var body = ab[3], title = ab[2].trim();
+      var cons = pick(body, "Consequences"), cause = pick(body, "Causes"), act = pick(body, "Actions"), desc = body.split(/\s+Consequences:/)[0].trim();
+      var sevA = ABB_FAULT.test(title) ? "fault" : "info";
+      addEvent(R, { ts: ts, rule: "abb:" + ab[1], eqKey: "u" + (node || "?"), eqKind: "node", eqNum: node, sev: sevA,
+        title: title, code: "Robot event " + ab[1],
+        h: desc + (cons ? " " + cons : ""), c: cause || "The robot controller does not give a cause for this event.", k: act || "Check the FlexPendant event log for messages at the same time.", raw: line });
+      return;
+    }
+
+    /* 3. alarm signals */
+    var gs = msg.match(/GenerateAlarmSignal: Write Variable ([A-Za-z_]+?)(\d*) with Value (\d+)/);
+    if (gs) {
+      var sig = SIGNALS[gs[1]];
+      if (sig && gs[3] === "1") {
+        var eqk = sig.eq + (gs[2] ? " " + gs[2] : "");
+        var t = sig.t + (gs[2] ? " " + gs[2] : "");
+        var eNum = null, eKind = "named";
+        if (gs[1] === "RobotBreakdown") { eKind = "robot"; }
+        if (gs[1] === "BrokenBeadOven" && gs[2]) { eqk = "Oven " + gs[2]; }
+        addEvent(R, { ts: ts, rule: "sig:" + gs[1], eqKey: "s:" + eqk, eqKind: eKind, eqNum: eNum, eqText: cap(eqk), sev: sig.sev, title: t, code: "Signal " + gs[1] + gs[2], h: sig.h, c: sig.c, k: sig.k, raw: line });
+      }
+      return;
+    }
+
+    /* 4. operator deletions */
+    var dl = msg.match(/Operater has deleted (worksheet|sample) (.+?) from position (\d+)/);
+    if (dl) {
+      var tag2 = dl[2].replace(/\s*\[\d+\]$/, "").trim();
+      R.deletions.push({ ts: ts, day: shiftDay(ts), night: isNight(ts), what: dl[1], tag: dl[2], tagShort: tag2, pos: dl[3], raw: line });
+      return;
+    }
+
+    /* 5. operator commands to units */
+    var oc = msg.match(/Send Command \[(\d+)\] \[([^\]]+)\] \[(\d+)\]/);
+    if (oc && /[A-Za-z]/.test(oc[2])) { R.ops.push({ ts: ts, unit: oc[1], cmd: oc[2], raw: line }); return; }
+
+    /* 6. sync found an item */
+    var sy = msg.match(/SYN request: Detect item on point (\d+)\/"([^",]*)"?,? Type (\d+)\. (Try to remove it|Do not remove it)/);
+    if (sy) {
+      var keep = /Do not/.test(sy[4]);
+      addEvent(R, { ts: ts, rule: "syn", eqKey: "p" + sy[1], eqKind: "pos", eqNum: sy[1], sev: "info", title: "Item found during synchronisation",
+        h: "While re-synchronising, Prepmaster found an item at {POS}" + (keep ? " and kept it." : " that it did not expect and asked for it to be removed."),
+        c: "Synchronisation compares what the unit holds with what Prepmaster thinks it holds. A mismatch follows a manual move, a reset or a stop mid-transfer.",
+        k: keep ? "Nothing to do." : "Check the place: remove the item if no tag belongs to it, or re-register it.", raw: line, posRef: sy[1] });
+      return;
+    }
+
+    /* 7. sample finished with error */
+    var se = msg.match(/Sample run of (\S+) finshed\. Status of all .* is ERROR/);
+    if (se) {
+      addEvent(R, { ts: ts, rule: "smperr", eqKey: "s:samples", eqKind: "named", eqText: "Sample results", sev: "warn", title: "Sample finished with an error",
+        h: se[1] + " finished, but one of its parts ended with an error status.", mergeKey: se[1],
+        c: "One of the sub-samples (bead, TGA crucible) failed or was deleted before it finished.",
+        k: "Check the sample's results in CCLAS; re-run the missing part if needed.", raw: line });
+      return;
+    }
+
+    /* 8. sample held up (info) */
+    var mo = msg.match(/Sample (.+?) and Type \d+ on ?(\d+) waits (\d+)s and reports a monitoring errror/);
+    if (mo) {
+      addEvent(R, { ts: ts, rule: "wait", eqKey: "p" + mo[2], eqKind: "pos", eqNum: mo[2], sev: "info", title: "Sample waiting longer than usual",
+        h: mo[1] + " waited " + mo[3] + " s at {POS}, longer than Prepmaster expects.", mergeKey: "",
+        c: "Information, not a fault: the next unit was busy or not ready.", k: "Only worth a look if the same place keeps appearing.", raw: line, posRef: mo[2] });
+      return;
+    }
+
+    /* 9. other alarms */
+    if (kind === "!! ALARM !!") {
+      for (var i = 0; i < ALARMS.length; i++) {
+        var a = ALARMS[i], am = msg.match(a.re);
+        if (!am) continue;
+        var pref = a.pos ? am[a.pos] : null;
+        addEvent(R, { ts: ts, rule: "al:" + a.id, eqKey: pref ? "p" + pref : (node ? "u" + node : "s:" + src), eqKind: pref ? "pos" : (node ? "node" : "named"), eqNum: pref || node, eqText: pref || node ? null : softName(src),
+          sev: a.sev, title: a.t, h: a.h(am, R.N, msg), c: a.c, k: a.k, raw: line, posRef: pref });
+        return;
+      }
+      addEvent(R, { ts: ts, rule: "al:other:" + msg.replace(/\d+/g, "#").slice(0, 60), eqKey: node ? "u" + node : "s:" + src, eqKind: node ? "node" : "named", eqNum: node, eqText: node ? null : softName(src),
+        sev: "warn", title: "Prepmaster alarm", h: "Prepmaster logged: “" + msg.trim() + "”", c: "This alarm type isn't in the decoder yet.", k: "Check the Prepmaster screen at this time.", raw: line });
+    }
+  }
+
+  function softName(src) {
+    if (/Worksheet/i.test(src)) return "Sample tracking (worksheets)";
+    if (/State/i.test(src)) return "Prepmaster control";
+    return src;
+  }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function pick(body, label) {
+    var re = new RegExp(label + ":\\s*(.*?)(?=\\s+(Consequences|Causes|Actions|Warning):|$)");
+    var m = body.match(re); return m ? m[1].trim() : "";
+  }
+
+  function unitState(R, ts, unit, state, busyHex, errHex, line) {
+    var st = R.unitState[unit] || (R.unitState[unit] = { state: 1, since: null, open: null });
+    if (state === st.state) return;
+    var prev = st.state; st.state = state;
+    if (st.open && state === 1) { st.open.end = ts; st.open.downMs = ts - st.open.ts; st.open = null; }
+    if (state === 8 || state === 4 || state === 2) {
+      if (st.open) { st.open.end = ts; st.open.downMs = ts - st.open.ts; }
+      var flags = bitsText(R.N, unit, busyHex);
+      var info = {
+        8: { t: "Went into breakdown", sev: "fault", h: "{EQ} stopped and reported a breakdown.", c: "The unit's controller found a fault it cannot clear by itself (error code " + errHex.toUpperCase() + ").", k: "Read the unit's alarm on the WinCC/Prepmaster screen for this time and any robot messages under Nearby, fix the cause, then reset the breakdown." },
+        4: { t: "Switched to manual", sev: "warn", h: "{EQ} left automatic and was in manual mode.", c: "Someone switched it to manual, or a safety stop (door, guard, e-stop) dropped it out of automatic.", k: "If no one was working on it, check doors and guards. Switch back to automatic when finished." },
+        2: { t: "Went offline", sev: "fault", h: "{EQ} stopped talking to Prepmaster.", c: "Communication with the unit was lost – network, PLC or the unit's PC.", k: "Check the unit's PC/PLC is on and the network link is up, then synchronise." }
+      }[state];
+      var e = addEvent(R, { ts: ts, rule: "st:" + state, eqKey: "u" + unit, eqKind: "unit", eqNum: unit, sev: info.sev, title: info.t,
+        h: info.h + (flags ? " Status flags at the time: " + flags + "." : ""), c: info.c, k: info.k, raw: line, mergeKey: "", errHex: errHex });
+      st.open = e;
+    }
+  }
+
+  function scoreMachine(R, line) {
+    for (var k in MACH_HINTS) if (MACH_HINTS[k][0].test(line)) R.score[k]++;
+  }
+
+  function finish(R) {
+    // close open downtime at end of log
+    Object.keys(R.unitState).forEach(function (u) { var o = R.unitState[u].open; if (o) { o.end = R.last; o.downMs = R.last - o.ts; o.openEnd = true; } });
+    if (!R.machine) {
+      var best = "HAG", bv = -1; for (var k in R.score) if (R.score[k] > bv) { bv = R.score[k]; best = k; }
+      R.machine = best;
+    }
+    R.events.sort(function (a, b) { return a.ts - b.ts; });
+    R.deletions.sort(function (a, b) { return a.ts - b.ts; });
+    // attach "operator reset" info to breakdowns
+    R.events.forEach(function (e) {
+      if (e.rule === "st:8" && e.eqNum) {
+        var r = R.ops.filter(function (o) { return o.unit === e.eqNum && o.ts >= e.ts && o.ts <= (e.end || e.ts) + 60000; });
+        if (r.length) e.ops = r.map(function (o) { return o.cmd; });
+      }
+    });
+    delete R._lastByKey;
+    return R;
+  }
+
+  return { DEFAULT_NAMES: DEFAULT_NAMES, blankNames: blankNames, parseStateIni: parseStateIni, parsePmNo: parsePmNo, parsePmUn: parsePmUn, mergeNames: mergeNames,
+    newRun: newRun, routeLink: routeLink, feed: feed, finish: finish, unitName: unitName, nodeName: nodeName, posName: posName, posLabel: posLabel, eqLabel: eqLabel, esc: esc, shiftDay: shiftDay, STATE_TXT: STATE_TXT };
+})();
+if (typeof module !== "undefined") module.exports = PFD;
+
+</script>
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)}, esc=PFD.esc;
+var MACHS=["HAG","Autochem","RSPU"];
+var ROSTER={"data":{"Brian Adley":{"2026-01-01":"D","2026-01-05":"D","2026-01-06":"D","2026-01-07":"D","2026-01-08":"D","2026-01-09":"-","2026-01-12":"D","2026-01-13":"D","2026-01-14":"D","2026-01-15":"D","2026-01-19":"D","2026-01-20":"D","2026-01-21":"D","2026-01-22":"D","2026-01-23":"-","2026-01-26":"D","2026-01-27":"D","2026-01-28":"D","2026-01-29":"D","2026-02-02":"D","2026-02-03":"D","2026-02-04":"D","2026-02-05":"D","2026-02-06":"-","2026-02-09":"D","2026-02-10":"D","2026-02-11":"D","2026-02-12":"D","2026-02-16":"D","2026-02-17":"D","2026-02-18":"D","2026-02-19":"D","2026-02-20":"-","2026-02-23":"D","2026-02-24":"D","2026-02-25":"D","2026-02-26":"D","2026-03-02":"D","2026-03-03":"D","2026-03-04":"D","2026-03-05":"-","2026-03-06":"-","2026-03-09":"D","2026-03-10":"D","2026-03-11":"D","2026-03-12":"D","2026-03-16":"D","2026-03-17":"D","2026-03-18":"D","2026-03-19":"D","2026-03-20":"-","2026-03-23":"D","2026-03-24":"D","2026-03-25":"D","2026-03-26":"D","2026-03-30":"D","2026-03-31":"D","2026-04-01":"D","2026-04-02":"D","2026-04-03":"-","2026-04-06":"D","2026-04-07":"D","2026-04-08":"D","2026-04-09":"D","2026-04-13":"D","2026-04-14":"D","2026-04-15":"D","2026-04-16":"D","2026-04-17":"-","2026-04-20":"D","2026-04-21":"D","2026-04-22":"D","2026-04-23":"D","2026-04-27":"D","2026-04-28":"D","2026-04-29":"D","2026-04-30":"D","2026-05-01":"-","2026-05-04":"D","2026-05-05":"D","2026-05-06":"D","2026-05-07":"D","2026-05-11":"D","2026-05-12":"D","2026-05-13":"D","2026-05-14":"D","2026-05-15":"-","2026-05-18":"D","2026-05-19":"D","2026-05-20":"D","2026-05-21":"D","2026-05-25":"D","2026-05-26":"D","2026-05-27":"D","2026-05-28":"D","2026-05-29":"-","2026-06-01":"D","2026-06-02":"D","2026-06-03":"D","2026-06-04":"-","2026-06-08":"D","2026-06-09":"D","2026-06-10":"D","2026-06-11":"D","2026-06-12":"-","2026-06-15":"D","2026-06-16":"D","2026-06-17":"D","2026-06-18":"D","2026-06-22":"D","2026-06-23":"D","2026-06-24":"D","2026-06-25":"D","2026-06-26":"-","2026-06-29":"D","2026-06-30":"D","2026-07-01":"D","2026-07-02":"D","2026-07-06":"D","2026-07-07":"D","2026-07-08":"D","2026-07-09":"D","2026-07-10":"-","2026-07-13":"D","2026-07-14":"D","2026-07-15":"D","2026-07-16":"D","2026-07-20":"D","2026-07-21":"D","2026-07-22":"D","2026-07-23":"D","2026-07-24":"-","2026-07-27":"D","2026-07-28":"D","2026-07-29":"D","2026-07-30":"D","2026-08-03":"D","2026-08-04":"D","2026-08-05":"D","2026-08-06":"D","2026-08-07":"-","2026-08-10":"D","2026-08-11":"D","2026-08-12":"D","2026-08-13":"D","2026-08-17":"D","2026-08-18":"D","2026-08-19":"D","2026-08-20":"D","2026-08-21":"-","2026-08-24":"D","2026-08-25":"D","2026-08-26":"D","2026-08-27":"D","2026-08-31":"D","2026-09-01":"D","2026-09-02":"D","2026-09-03":"D","2026-09-04":"-","2026-09-07":"D","2026-09-08":"D","2026-09-09":"D","2026-09-10":"D","2026-09-14":"D","2026-09-15":"D","2026-09-16":"D","2026-09-17":"D","2026-09-18":"-","2026-09-21":"-","2026-09-22":"-","2026-09-23":"-","2026-09-24":"-","2026-09-28":"-","2026-09-29":"-","2026-09-30":"-","2026-10-01":"-","2026-10-02":"-","2026-10-05":"-","2026-10-06":"-","2026-10-07":"-","2026-10-08":"-","2026-10-12":"-","2026-10-13":"-","2026-10-14":"-","2026-10-15":"-","2026-10-16":"-","2026-10-19":"-","2026-10-20":"-","2026-10-21":"-","2026-10-22":"-","2026-10-26":"-","2026-10-27":"-","2026-10-28":"-","2026-10-29":"-","2026-10-30":"-","2026-11-02":"D","2026-11-03":"D","2026-11-04":"D","2026-11-05":"D","2026-11-09":"D","2026-11-10":"D","2026-11-11":"D","2026-11-12":"D","2026-11-13":"-","2026-11-16":"D","2026-11-17":"D","2026-11-18":"D","2026-11-19":"D","2026-11-23":"D","2026-11-24":"D","2026-11-25":"D","2026-11-26":"D","2026-11-27":"-","2026-11-30":"D","2026-12-01":"D","2026-12-02":"D","2026-12-03":"D","2026-12-07":"D","2026-12-08":"D","2026-12-09":"D","2026-12-10":"D","2026-12-11":"-","2026-12-14":"D","2026-12-15":"D","2026-12-16":"D","2026-12-17":"D","2026-12-21":"D","2026-12-22":"D","2026-12-23":"D","2026-12-24":"D","2026-12-25":"-","2026-12-28":"D","2026-12-29":"D","2026-12-30":"D","2026-12-31":"D","2027-01-04":"D","2027-01-05":"D","2027-01-06":"D","2027-01-07":"D","2027-01-08":"-","2027-01-11":"D","2027-01-12":"D","2027-01-13":"D","2027-01-14":"D","2027-01-18":"D","2027-01-19":"D","2027-01-20":"D","2027-01-21":"D","2027-01-22":"-","2027-01-25":"D","2027-01-26":"D","2027-01-27":"D","2027-01-28":"D","2027-02-01":"D","2027-02-02":"D","2027-02-03":"D","2027-02-04":"D","2027-02-05":"-","2027-02-08":"D","2027-02-09":"D","2027-02-10":"D","2027-02-11":"D","2027-02-15":"D","2027-02-16":"D","2027-02-17":"D","2027-02-18":"D","2027-02-19":"-","2027-02-22":"D","2027-02-23":"D","2027-02-24":"D","2027-02-25":"D","2027-03-01":"D","2027-03-02":"D","2027-03-03":"D","2027-03-04":"D","2027-03-05":"-","2027-03-08":"D","2027-03-09":"D","2027-03-10":"D","2027-03-11":"D","2027-03-15":"D","2027-03-16":"D","2027-03-17":"D","2027-03-18":"D","2027-03-19":"-","2027-03-22":"D","2027-03-23":"D","2027-03-24":"D","2027-03-25":"D","2027-03-29":"D","2027-03-30":"D","2027-03-31":"D","2027-04-01":"D","2027-04-02":"-","2027-04-05":"D","2027-04-06":"D","2027-04-07":"D","2027-04-08":"D","2027-04-12":"D","2027-04-13":"D","2027-04-14":"D","2027-04-15":"D","2027-04-16":"-","2027-04-19":"D","2027-04-20":"D","2027-04-21":"D","2027-04-22":"D","2027-04-26":"D","2027-04-27":"D","2027-04-28":"D","2027-04-29":"D","2027-04-30":"-","2027-05-03":"D","2027-05-04":"D","2027-05-05":"D","2027-05-06":"D","2027-05-10":"D","2027-05-11":"D","2027-05-12":"D","2027-05-13":"D","2027-05-14":"-","2027-05-17":"D","2027-05-18":"D","2027-05-19":"D","2027-05-20":"D","2027-05-24":"D","2027-05-25":"D","2027-05-26":"D","2027-05-27":"D","2027-05-28":"-","2027-05-31":"D","2027-06-01":"D","2027-06-02":"D","2027-06-03":"D","2027-06-07":"D","2027-06-08":"D","2027-06-09":"D","2027-06-10":"D","2027-06-11":"-","2027-06-14":"D","2027-06-15":"D","2027-06-16":"D","2027-06-17":"D","2027-06-21":"D","2027-06-22":"D","2027-06-23":"D","2027-06-24":"D","2027-06-25":"-","2027-06-28":"D","2027-06-29":"D","2027-06-30":"D","2027-07-01":"D","2027-07-05":"D","2027-07-06":"D","2027-07-07":"D","2027-07-08":"D","2027-07-09":"-","2027-07-12":"D","2027-07-13":"D","2027-07-14":"D","2027-07-15":"D","2027-07-19":"D","2027-07-20":"D","2027-07-21":"D","2027-07-22":"D","2027-07-23":"-","2027-07-26":"D","2027-07-27":"D","2027-07-28":"D","2027-07-29":"D","2027-08-02":"D","2027-08-03":"D","2027-08-04":"D","2027-08-05":"D","2027-08-06":"-","2027-08-09":"D","2027-08-10":"D","2027-08-11":"D","2027-08-12":"D","2027-08-16":"D","2027-08-17":"D","2027-08-18":"D","2027-08-19":"D","2027-08-20":"-","2027-08-23":"D","2027-08-24":"D","2027-08-25":"D","2027-08-26":"D","2027-08-30":"D","2027-08-31":"D","2027-09-01":"D","2027-09-02":"D","2027-09-03":"-","2027-09-06":"D","2027-09-07":"D","2027-09-08":"D","2027-09-09":"D","2027-09-13":"D","2027-09-14":"D","2027-09-15":"D","2027-09-16":"D","2027-09-17":"-","2027-09-20":"D","2027-09-21":"D","2027-09-22":"D","2027-09-23":"D","2027-09-27":"D","2027-09-28":"D","2027-09-29":"D","2027-09-30":"D","2027-10-01":"-","2027-10-04":"D","2027-10-05":"D","2027-10-06":"D","2027-10-07":"D","2027-10-11":"D","2027-10-12":"D","2027-10-13":"D","2027-10-14":"D","2027-10-15":"-","2027-10-18":"D","2027-10-19":"D","2027-10-20":"D","2027-10-21":"D","2027-10-25":"D","2027-10-26":"D","2027-10-27":"D","2027-10-28":"D","2027-10-29":"-","2027-11-01":"D","2027-11-02":"D","2027-11-03":"D","2027-11-04":"D","2027-11-08":"D","2027-11-09":"D","2027-11-10":"D","2027-11-11":"D","2027-11-12":"-","2027-11-15":"D","2027-11-16":"D","2027-11-17":"D","2027-11-18":"D","2027-11-22":"D","2027-11-23":"D","2027-11-24":"D","2027-11-25":"D","2027-11-26":"-","2027-11-29":"D","2027-11-30":"D","2027-12-01":"D","2027-12-02":"D","2027-12-06":"D","2027-12-07":"D","2027-12-08":"D","2027-12-09":"D","2027-12-10":"-","2027-12-13":"D","2027-12-14":"D","2027-12-15":"D","2027-12-16":"D","2027-12-20":"D","2027-12-21":"D","2027-12-22":"D","2027-12-23":"D","2027-12-24":"-","2027-12-27":"D","2027-12-28":"D","2027-12-29":"D","2027-12-30":"D"},"Blake McNally":{"2026-01-26":"D","2026-01-27":"D","2026-01-28":"D","2026-01-29":"D","2026-01-30":"-","2026-02-02":"D","2026-02-03":"D","2026-02-04":"D","2026-02-05":"D","2026-02-09":"D","2026-02-10":"D","2026-02-11":"D","2026-02-12":"-","2026-02-13":"-","2026-02-16":"D","2026-02-17":"D","2026-02-18":"D","2026-02-19":"D","2026-02-23":"D","2026-02-24":"D","2026-02-25":"D","2026-02-26":"D","2026-02-27":"-","2026-03-02":"D","2026-03-03":"D","2026-03-04":"D","2026-03-05":"D","2026-03-09":"D","2026-03-10":"D","2026-03-11":"D","2026-03-12":"D","2026-03-13":"-","2026-03-16":"D","2026-03-17":"D","2026-03-18":"D","2026-03-19":"D","2026-03-23":"D","2026-03-24":"D","2026-03-25":"D","2026-03-26":"D","2026-03-27":"-","2026-03-30":"D","2026-03-31":"D","2026-04-01":"D","2026-04-02":"D","2026-04-06":"-","2026-04-07":"D","2026-04-08":"D","2026-04-09":"D","2026-04-10":"-","2026-04-13":"D","2026-04-14":"D","2026-04-15":"-","2026-04-16":"D","2026-04-20":"D","2026-04-21":"D","2026-04-22":"D","2026-04-23":"D","2026-04-24":"-","2026-04-27":"D","2026-04-28":"D","2026-04-29":"D","2026-04-30":"D","2026-05-04":"D","2026-05-05":"D","2026-05-06":"D","2026-05-07":"D","2026-05-08":"-","2026-05-11":"D","2026-05-12":"D","2026-05-13":"-","2026-05-14":"D","2026-05-18":"D","2026-05-19":"D","2026-05-20":"D","2026-05-21":"D","2026-05-22":"-","2026-05-25":"D","2026-05-26":"D","2026-05-27":"D","2026-05-28":"D","2026-06-01":"-","2026-06-02":"-","2026-06-03":"-","2026-06-04":"-","2026-06-05":"-","2026-06-08":"-","2026-06-09":"-","2026-06-10":"-","2026-06-11":"-","2026-06-15":"-","2026-06-16":"-","2026-06-17":"-","2026-06-18":"-","2026-06-19":"-","2026-06-22":"-","2026-06-23":"-","2026-06-24":"-","2026-06-25":"-","2026-06-29":"D","2026-06-30":"D","2026-07-01":"D","2026-07-02":"D","2026-07-03":"-","2026-07-06":"-","2026-07-07":"-","2026-07-08":"-","2026-07-09":"-","2026-07-10":"-","2026-07-13":"D","2026-07-14":"D","2026-07-15":"D","2026-07-16":"D","2026-07-17":"-","2026-07-20":"-","2026-07-21":"D","2026-07-22":"D","2026-07-23":"D","2026-07-27":"-","2026-07-28":"D","2026-07-29":"D","2026-07-30":"D","2026-07-31":"-","2026-08-03":"-","2026-08-04":"-","2026-08-05":"-","2026-08-06":"-","2026-08-10":"D","2026-08-11":"D","2026-08-12":"D","2026-08-13":"D","2026-08-14":"-","2026-08-17":"D","2026-08-18":"D","2026-08-19":"D","2026-08-20":"D","2026-08-24":"D","2026-08-25":"D","2026-08-26":"D","2026-08-27":"D","2026-08-28":"-","2026-08-31":"D","2026-09-01":"D","2026-09-02":"D","2026-09-03":"D","2026-09-07":"D","2026-09-08":"D","2026-09-09":"D","2026-09-10":"D","2026-09-11":"-","2026-09-14":"D","2026-09-15":"D","2026-09-16":"D","2026-09-17":"D","2026-09-21":"D","2026-09-22":"D","2026-09-23":"D","2026-09-24":"D","2026-09-25":"-","2026-09-28":"D","2026-09-29":"D","2026-09-30":"D","2026-10-01":"D","2026-10-05":"D","2026-10-06":"D","2026-10-07":"D","2026-10-08":"D","2026-10-09":"-","2026-10-12":"D","2026-10-13":"D","2026-10-14":"D","2026-10-15":"D","2026-10-19":"D","2026-10-20":"D","2026-10-21":"D","2026-10-22":"D","2026-10-23":"-","2026-10-26":"D","2026-10-27":"D","2026-10-28":"D","2026-10-29":"D","2026-11-02":"D","2026-11-03":"D","2026-11-04":"D","2026-11-05":"D","2026-11-06":"-","2026-11-09":"D","2026-11-10":"D","2026-11-11":"D","2026-11-12":"D","2026-11-16":"D","2026-11-17":"D","2026-11-18":"D","2026-11-19":"D","2026-11-20":"-","2026-11-23":"D","2026-11-24":"D","2026-11-25":"D","2026-11-26":"D","2026-11-30":"D","2026-12-01":"D","2026-12-02":"D","2026-12-03":"D","2026-12-04":"-","2026-12-07":"D","2026-12-08":"D","2026-12-09":"D","2026-12-10":"D","2026-12-14":"D","2026-12-15":"D","2026-12-16":"D","2026-12-17":"D","2026-12-18":"-","2026-12-21":"D","2026-12-22":"D","2026-12-23":"D","2026-12-24":"D","2026-12-28":"D","2026-12-29":"D","2026-12-30":"D","2026-12-31":"D","2027-01-01":"-","2027-01-04":"D","2027-01-05":"D","2027-01-06":"D","2027-01-07":"D","2027-01-11":"D","2027-01-12":"D","2027-01-13":"D","2027-01-14":"D","2027-01-15":"-","2027-01-18":"D","2027-01-19":"D","2027-01-20":"D","2027-01-21":"D","2027-01-25":"D","2027-01-26":"D","2027-01-27":"D","2027-01-28":"D","2027-01-29":"-","2027-02-01":"D","2027-02-02":"D","2027-02-03":"D","2027-02-04":"D","2027-02-08":"D","2027-02-09":"D","2027-02-10":"D","2027-02-11":"D","2027-02-12":"-","2027-02-15":"D","2027-02-16":"D","2027-02-17":"D","2027-02-18":"D","2027-02-22":"D","2027-02-23":"D","2027-02-24":"D","2027-02-25":"D","2027-02-26":"-","2027-03-01":"D","2027-03-02":"D","2027-03-03":"D","2027-03-04":"D","2027-03-08":"D","2027-03-09":"D","2027-03-10":"D","2027-03-11":"D","2027-03-12":"-","2027-03-15":"D","2027-03-16":"D","2027-03-17":"D","2027-03-18":"D","2027-03-22":"D","2027-03-23":"D","2027-03-24":"D","2027-03-25":"D","2027-03-26":"-","2027-03-29":"D","2027-03-30":"D","2027-03-31":"D","2027-04-01":"D","2027-04-05":"D","2027-04-06":"D","2027-04-07":"D","2027-04-08":"D","2027-04-09":"-","2027-04-12":"D","2027-04-13":"D","2027-04-14":"D","2027-04-15":"D","2027-04-19":"D","2027-04-20":"D","2027-04-21":"D","2027-04-22":"D","2027-04-23":"-","2027-04-26":"D","2027-04-27":"D","2027-04-28":"D","2027-04-29":"D","2027-05-03":"D","2027-05-04":"D","2027-05-05":"D","2027-05-06":"D","2027-05-07":"-","2027-05-10":"D","2027-05-11":"D","2027-05-12":"D","2027-05-13":"D","2027-05-17":"D","2027-05-18":"D","2027-05-19":"D","2027-05-20":"D","2027-05-21":"-","2027-05-24":"D","2027-05-25":"D","2027-05-26":"D","2027-05-27":"D","2027-05-31":"D","2027-06-01":"D","2027-06-02":"D","2027-06-03":"D","2027-06-04":"-","2027-06-07":"D","2027-06-08":"D","2027-06-09":"D","2027-06-10":"D","2027-06-14":"D","2027-06-15":"D","2027-06-16":"D","2027-06-17":"D","2027-06-18":"-","2027-06-21":"D","2027-06-22":"D","2027-06-23":"D","2027-06-24":"D","2027-06-28":"D","2027-06-29":"D","2027-06-30":"D","2027-07-01":"D","2027-07-02":"-","2027-07-05":"D","2027-07-06":"D","2027-07-07":"D","2027-07-08":"D","2027-07-12":"D","2027-07-13":"D","2027-07-14":"D","2027-07-15":"D","2027-07-16":"-","2027-07-19":"D","2027-07-20":"D","2027-07-21":"D","2027-07-22":"D","2027-07-26":"D","2027-07-27":"D","2027-07-28":"D","2027-07-29":"D","2027-07-30":"-","2027-08-02":"D","2027-08-03":"D","2027-08-04":"D","2027-08-05":"D","2027-08-09":"D","2027-08-10":"D","2027-08-11":"D","2027-08-12":"D","2027-08-13":"-","2027-08-16":"D","2027-08-17":"D","2027-08-18":"D","2027-08-19":"D","2027-08-23":"D","2027-08-24":"D","2027-08-25":"D","2027-08-26":"D","2027-08-27":"-","2027-08-30":"D","2027-08-31":"D","2027-09-01":"D","2027-09-02":"D","2027-09-06":"D","2027-09-07":"D","2027-09-08":"D","2027-09-09":"D","2027-09-10":"-","2027-09-13":"D","2027-09-14":"D","2027-09-15":"D","2027-09-16":"D","2027-09-20":"D","2027-09-21":"D","2027-09-22":"D","2027-09-23":"D","2027-09-24":"-","2027-09-27":"D","2027-09-28":"D","2027-09-29":"D","2027-09-30":"D","2027-10-04":"D","2027-10-05":"D","2027-10-06":"D","2027-10-07":"D","2027-10-08":"-","2027-10-11":"D","2027-10-12":"D","2027-10-13":"D","2027-10-14":"D","2027-10-18":"D","2027-10-19":"D","2027-10-20":"D","2027-10-21":"D","2027-10-22":"-","2027-10-25":"D","2027-10-26":"D","2027-10-27":"D","2027-10-28":"D","2027-11-01":"D","2027-11-02":"D","2027-11-03":"D","2027-11-04":"D","2027-11-05":"-","2027-11-08":"D","2027-11-09":"D","2027-11-10":"D","2027-11-11":"D","2027-11-15":"D","2027-11-16":"D","2027-11-17":"D","2027-11-18":"D","2027-11-19":"-","2027-11-22":"D","2027-11-23":"D","2027-11-24":"D","2027-11-25":"D","2027-11-29":"D","2027-11-30":"D","2027-12-01":"D","2027-12-02":"D","2027-12-03":"-","2027-12-06":"D","2027-12-07":"D","2027-12-08":"D","2027-12-09":"D","2027-12-13":"D","2027-12-14":"D","2027-12-15":"D","2027-12-16":"D","2027-12-17":"-","2027-12-20":"D","2027-12-21":"D","2027-12-22":"D","2027-12-23":"D","2027-12-27":"D","2027-12-28":"D","2027-12-29":"D","2027-12-30":"D","2027-12-31":"-"},"Ming Fah Fong":{"2026-01-02":"-","2026-01-03":"-","2026-01-04":"-","2026-01-05":"-","2026-01-06":"-","2026-01-12":"D","2026-01-13":"D","2026-01-14":"D","2026-01-15":"N","2026-01-21":"D","2026-01-22":"D","2026-01-23":"N","2026-01-24":"N","2026-01-25":"N","2026-01-28":"-","2026-01-29":"-","2026-01-30":"-","2026-01-31":"-","2026-02-01":"-","2026-02-06":"-","2026-02-07":"-","2026-02-08":"-","2026-02-09":"-","2026-02-10":"-","2026-02-16":"D","2026-02-17":"D","2026-02-18":"D","2026-02-19":"D","2026-02-25":"D","2026-02-26":"D","2026-02-27":"D","2026-02-28":"D","2026-03-01":"D","2026-03-05":"-","2026-03-09":"D","2026-03-10":"D","2026-03-11":"N","2026-03-12":"N","2026-03-18":"D","2026-03-19":"D","2026-03-20":"N","2026-03-21":"N","2026-03-22":"N","2026-03-25":"D","2026-03-26":"D","2026-03-27":"D","2026-03-28":"D","2026-03-29":"D","2026-04-03":"D","2026-04-04":"D","2026-04-05":"D","2026-04-06":"N","2026-04-07":"N","2026-04-13":"D","2026-04-14":"D","2026-04-15":"N","2026-04-16":"N","2026-04-22":"D","2026-04-23":"D","2026-04-24":"N","2026-04-25":"N","2026-04-26":"N","2026-05-01":"D","2026-05-02":"D","2026-05-03":"D","2026-05-04":"D","2026-05-05":"D","2026-05-11":"D","2026-05-12":"D","2026-05-13":"D","2026-05-14":"D","2026-05-20":"D","2026-05-21":"D","2026-05-22":"D","2026-05-23":"D","2026-05-24":"D","2026-05-29":"D","2026-05-30":"D","2026-05-31":"D","2026-06-01":"D","2026-06-02":"D","2026-06-09":"D","2026-06-10":"D","2026-06-12":"D","2026-06-13":"D","2026-06-14":"D","2026-06-15":"N","2026-06-16":"N","2026-06-24":"D","2026-06-25":"D","2026-06-26":"D","2026-06-27":"D","2026-06-28":"D","2026-06-29":"D","2026-06-30":"D","2026-07-06":"D","2026-07-07":"D","2026-07-08":"D","2026-07-09":"D","2026-07-15":"D","2026-07-16":"D","2026-07-17":"D","2026-07-18":"D","2026-07-19":"D","2026-07-24":"D","2026-07-25":"D","2026-07-26":"D","2026-07-27":"N","2026-07-28":"N","2026-08-03":"D","2026-08-04":"D","2026-08-05":"N","2026-08-06":"N","2026-08-11":"D","2026-08-12":"D","2026-08-13":"D","2026-08-14":"D","2026-08-15":"D","2026-08-21":"D","2026-08-22":"D","2026-08-23":"D","2026-08-24":"D","2026-08-25":"D","2026-08-31":"D","2026-09-01":"D","2026-09-02":"D","2026-09-03":"D","2026-09-09":"D","2026-09-10":"D","2026-09-11":"D","2026-09-12":"D","2026-09-13":"D","2026-09-18":"D","2026-09-19":"D","2026-09-20":"D","2026-09-21":"D","2026-09-22":"D","2026-09-28":"D","2026-09-29":"D","2026-09-30":"D","2026-10-03":"OT","2026-10-04":"OT","2026-10-05":"OT","2026-10-09":"D","2026-10-10":"D","2026-10-11":"D","2026-10-12":"N","2026-10-13":"N","2026-10-14":"N","2026-10-15":"N","2026-10-19":"D","2026-10-20":"D","2026-10-21":"N","2026-10-26":"D","2026-10-27":"D","2026-10-28":"D","2026-10-29":"D","2026-11-04":"D","2026-11-05":"D","2026-11-06":"D","2026-11-07":"D","2026-11-08":"D","2026-11-13":"D","2026-11-14":"D","2026-11-15":"D","2026-11-16":"D","2026-11-17":"D","2026-11-23":"D","2026-11-24":"D","2026-11-25":"D","2026-11-26":"D","2026-12-02":"D","2026-12-03":"D","2026-12-04":"N","2026-12-05":"N","2026-12-06":"N","2026-12-11":"-","2026-12-12":"-","2026-12-13":"-","2026-12-14":"D","2026-12-15":"D","2026-12-21":"D","2026-12-22":"D","2026-12-23":"D","2026-12-24":"D","2026-12-30":"D","2026-12-31":"D","2027-01-01":"D","2027-01-02":"D","2027-01-03":"D","2027-01-08":"D","2027-01-09":"D","2027-01-10":"D","2027-01-11":"D","2027-01-12":"D","2027-01-18":"D","2027-01-19":"-","2027-01-20":"-","2027-01-21":"-","2027-01-27":"-","2027-01-28":"-","2027-01-29":"-","2027-01-30":"-","2027-01-31":"-","2027-02-05":"-","2027-02-06":"-","2027-02-07":"-","2027-02-08":"-","2027-02-09":"-","2027-02-15":"D","2027-02-16":"D","2027-02-17":"D","2027-02-18":"D","2027-02-24":"D","2027-02-25":"D","2027-02-26":"D","2027-02-27":"D","2027-02-28":"D","2027-03-05":"D","2027-03-06":"D","2027-03-07":"D","2027-03-08":"D","2027-03-09":"D","2027-03-15":"D","2027-03-16":"D","2027-03-17":"D","2027-03-18":"D","2027-03-24":"D","2027-03-25":"D","2027-03-26":"D","2027-03-27":"D","2027-03-28":"D","2027-04-02":"D","2027-04-03":"D","2027-04-04":"D","2027-04-05":"D","2027-04-06":"D","2027-04-12":"D","2027-04-13":"D","2027-04-14":"D","2027-04-15":"D","2027-04-21":"D","2027-04-22":"D","2027-04-23":"D","2027-04-24":"D","2027-04-25":"D","2027-04-30":"D","2027-05-01":"D","2027-05-02":"D","2027-05-03":"D","2027-05-04":"D","2027-05-10":"D","2027-05-11":"D","2027-05-12":"D","2027-05-13":"D","2027-05-19":"D","2027-05-20":"D","2027-05-21":"D","2027-05-22":"D","2027-05-23":"D","2027-05-28":"D","2027-05-29":"D","2027-05-30":"D","2027-05-31":"D","2027-06-01":"D","2027-06-07":"D","2027-06-08":"D","2027-06-09":"D","2027-06-10":"D","2027-06-16":"D","2027-06-17":"D","2027-06-18":"D","2027-06-19":"D","2027-06-20":"D","2027-06-25":"D","2027-06-26":"D","2027-06-27":"D","2027-06-28":"D","2027-06-29":"D","2027-07-05":"D","2027-07-06":"D","2027-07-07":"D","2027-07-08":"D","2027-07-14":"D","2027-07-15":"D","2027-07-16":"D","2027-07-17":"D","2027-07-18":"D","2027-07-23":"D","2027-07-24":"D","2027-07-25":"D","2027-07-26":"D","2027-07-27":"D","2027-08-02":"D","2027-08-03":"D","2027-08-04":"D","2027-08-05":"D","2027-08-11":"D","2027-08-12":"D","2027-08-13":"D","2027-08-14":"D","2027-08-15":"D","2027-08-20":"D","2027-08-21":"D","2027-08-22":"D","2027-08-23":"D","2027-08-24":"D","2027-08-30":"D","2027-08-31":"D","2027-09-01":"D","2027-09-02":"D","2027-09-08":"D","2027-09-09":"D","2027-09-10":"D","2027-09-11":"D","2027-09-12":"D","2027-09-17":"D","2027-09-18":"D","2027-09-19":"D","2027-09-20":"D","2027-09-21":"D","2027-09-27":"D","2027-09-28":"D","2027-09-29":"D","2027-09-30":"D","2027-10-06":"D","2027-10-07":"D","2027-10-08":"D","2027-10-09":"D","2027-10-10":"D","2027-10-15":"D","2027-10-16":"D","2027-10-17":"D","2027-10-18":"D","2027-10-19":"D","2027-10-25":"D","2027-10-26":"D","2027-10-27":"D","2027-10-28":"D","2027-11-03":"D","2027-11-04":"D","2027-11-05":"D","2027-11-06":"D","2027-11-07":"D","2027-11-12":"D","2027-11-13":"D","2027-11-14":"D","2027-11-15":"D","2027-11-16":"D","2027-11-22":"D","2027-11-23":"D","2027-11-24":"D","2027-11-25":"D","2027-12-01":"D","2027-12-02":"D","2027-12-03":"D","2027-12-04":"D","2027-12-05":"D","2027-12-10":"D","2027-12-11":"D","2027-12-12":"D","2027-12-13":"D","2027-12-14":"D","2027-12-20":"D","2027-12-21":"D","2027-12-22":"D","2027-12-23":"D","2027-12-29":"D","2027-12-30":"D","2027-12-31":"D"},"Dan Smith":{"2026-01-01":"D","2026-01-02":"N","2026-01-03":"N","2026-01-04":"N","2026-01-09":"D","2026-01-10":"D","2026-01-11":"D","2026-01-12":"N","2026-01-13":"N","2026-01-14":"N","2026-01-19":"D","2026-01-20":"D","2026-01-21":"N","2026-01-22":"N","2026-01-28":"D","2026-01-29":"D","2026-01-30":"N","2026-01-31":"N","2026-02-01":"N","2026-02-06":"D","2026-02-07":"D","2026-02-08":"D","2026-02-09":"N","2026-02-10":"N","2026-02-16":"D","2026-02-17":"D","2026-02-18":"N","2026-02-19":"N","2026-02-25":"D","2026-02-26":"D","2026-02-27":"N","2026-02-28":"N","2026-03-01":"N","2026-03-06":"D","2026-03-07":"D","2026-03-08":"D","2026-03-09":"N","2026-03-10":"N","2026-03-16":"D","2026-03-17":"D","2026-03-18":"N","2026-03-19":"N","2026-03-25":"D","2026-03-26":"D","2026-03-27":"N","2026-03-28":"N","2026-03-29":"N","2026-04-03":"-","2026-04-04":"-","2026-04-05":"-","2026-04-06":"D","2026-04-07":"D","2026-04-13":"-","2026-04-14":"-","2026-04-15":"-","2026-04-16":"-","2026-04-22":"-","2026-04-23":"-","2026-04-24":"-","2026-04-25":"-","2026-04-26":"-","2026-05-01":"-","2026-05-02":"-","2026-05-03":"-","2026-05-04":"N","2026-05-05":"N","2026-05-11":"N","2026-05-12":"N","2026-05-13":"N","2026-05-14":"N","2026-05-20":"D","2026-05-21":"D","2026-05-22":"N","2026-05-23":"N","2026-05-24":"N","2026-05-29":"D","2026-05-30":"D","2026-05-31":"N","2026-06-01":"N","2026-06-02":"N","2026-06-08":"D","2026-06-09":"D","2026-06-10":"N","2026-06-11":"N","2026-06-17":"D","2026-06-18":"D","2026-06-19":"N","2026-06-20":"N","2026-06-21":"N","2026-06-26":"D","2026-06-27":"D","2026-06-28":"D","2026-06-29":"N","2026-06-30":"N","2026-07-06":"D","2026-07-07":"D","2026-07-08":"N","2026-07-09":"N","2026-07-15":"D","2026-07-16":"D","2026-07-17":"N","2026-07-18":"N","2026-07-19":"N","2026-07-24":"N","2026-07-25":"N","2026-07-26":"N","2026-07-27":"-","2026-07-28":"-","2026-08-03":"-","2026-08-04":"-","2026-08-05":"-","2026-08-06":"-","2026-08-12":"D","2026-08-13":"D","2026-08-14":"N","2026-08-15":"N","2026-08-16":"N","2026-08-21":"D","2026-08-22":"D","2026-08-23":"D","2026-08-24":"N","2026-08-25":"N","2026-08-26":"N","2026-08-27":"N","2026-08-31":"D","2026-09-01":"D","2026-09-02":"N","2026-09-03":"N","2026-09-09":"D","2026-09-10":"D","2026-09-11":"N","2026-09-12":"N","2026-09-13":"N","2026-09-18":"D","2026-09-19":"D","2026-09-20":"N","2026-09-21":"N","2026-09-22":"N","2026-09-28":"D","2026-09-29":"D","2026-09-30":"N","2026-10-01":"N","2026-10-02":"N","2026-10-06":"D","2026-10-07":"D","2026-10-08":"D","2026-10-09":"N","2026-10-10":"N","2026-10-16":"D","2026-10-17":"D","2026-10-18":"D","2026-10-19":"N","2026-10-20":"N","2026-10-26":"D","2026-10-27":"D","2026-10-28":"N","2026-10-29":"N","2026-11-04":"D","2026-11-05":"D","2026-11-06":"N","2026-11-07":"N","2026-11-08":"N","2026-11-13":"D","2026-11-14":"D","2026-11-15":"D","2026-11-16":"N","2026-11-17":"N","2026-11-23":"D","2026-11-24":"D","2026-11-25":"N","2026-11-26":"N","2026-12-02":"-","2026-12-03":"-","2026-12-04":"-","2026-12-05":"-","2026-12-06":"-","2026-12-11":"D","2026-12-12":"D","2026-12-13":"D","2026-12-14":"N","2026-12-15":"N","2026-12-21":"D","2026-12-22":"D","2026-12-23":"N","2026-12-24":"N","2026-12-30":"D","2026-12-31":"D","2026-10-14":"D","2026-10-15":"D","2027-01-01":"N","2027-01-02":"N","2027-01-03":"N","2027-01-08":"D","2027-01-09":"D","2027-01-10":"D","2027-01-11":"N","2027-01-12":"N","2027-01-18":"D","2027-01-19":"D","2027-01-20":"N","2027-01-21":"N","2027-01-27":"D","2027-01-28":"D","2027-01-29":"N","2027-01-30":"N","2027-01-31":"N","2027-02-05":"D","2027-02-06":"D","2027-02-07":"D","2027-02-08":"N","2027-02-09":"N","2027-02-15":"D","2027-02-16":"D","2027-02-17":"N","2027-02-18":"N","2027-02-24":"D","2027-02-25":"D","2027-02-26":"N","2027-02-27":"N","2027-02-28":"N","2027-03-05":"D","2027-03-06":"D","2027-03-07":"D","2027-03-08":"N","2027-03-09":"N","2027-03-15":"D","2027-03-16":"D","2027-03-17":"N","2027-03-18":"N","2027-03-24":"D","2027-03-25":"D","2027-03-26":"N","2027-03-27":"N","2027-03-28":"N","2027-04-02":"D","2027-04-03":"D","2027-04-04":"D","2027-04-05":"N","2027-04-06":"N","2027-04-12":"D","2027-04-13":"D","2027-04-14":"N","2027-04-15":"N","2027-04-21":"D","2027-04-22":"D","2027-04-23":"N","2027-04-24":"N","2027-04-25":"N","2027-04-30":"D","2027-05-01":"D","2027-05-02":"D","2027-05-03":"N","2027-05-04":"N","2027-05-10":"D","2027-05-11":"D","2027-05-12":"N","2027-05-13":"N","2027-05-19":"D","2027-05-20":"D","2027-05-21":"N","2027-05-22":"N","2027-05-23":"N","2027-05-28":"D","2027-05-29":"D","2027-05-30":"D","2027-05-31":"N","2027-06-01":"N","2027-06-07":"D","2027-06-08":"D","2027-06-09":"N","2027-06-10":"N","2027-06-16":"D","2027-06-17":"D","2027-06-18":"N","2027-06-19":"N","2027-06-20":"N","2027-06-25":"D","2027-06-26":"D","2027-06-27":"D","2027-06-28":"N","2027-06-29":"N","2027-07-05":"D","2027-07-06":"D","2027-07-07":"N","2027-07-08":"N","2027-07-14":"D","2027-07-15":"D","2027-07-16":"N","2027-07-17":"N","2027-07-18":"N","2027-07-23":"D","2027-07-24":"D","2027-07-25":"D","2027-07-26":"N","2027-07-27":"N","2027-08-02":"D","2027-08-03":"D","2027-08-04":"N","2027-08-05":"N","2027-08-11":"D","2027-08-12":"D","2027-08-13":"N","2027-08-14":"N","2027-08-15":"N","2027-08-20":"D","2027-08-21":"D","2027-08-22":"D","2027-08-23":"N","2027-08-24":"N","2027-08-30":"D","2027-08-31":"D","2027-09-01":"N","2027-09-02":"N","2027-09-08":"D","2027-09-09":"D","2027-09-10":"N","2027-09-11":"N","2027-09-12":"N","2027-09-17":"D","2027-09-18":"D","2027-09-19":"D","2027-09-20":"N","2027-09-21":"N","2027-09-27":"D","2027-09-28":"D","2027-09-29":"N","2027-09-30":"N","2027-10-06":"D","2027-10-07":"D","2027-10-08":"N","2027-10-09":"N","2027-10-10":"N","2027-10-15":"D","2027-10-16":"D","2027-10-17":"D","2027-10-18":"N","2027-10-19":"N","2027-10-25":"D","2027-10-26":"D","2027-10-27":"N","2027-10-28":"N","2027-11-03":"D","2027-11-04":"D","2027-11-05":"N","2027-11-06":"N","2027-11-07":"N","2027-11-12":"D","2027-11-13":"D","2027-11-14":"D","2027-11-15":"N","2027-11-16":"N","2027-11-22":"D","2027-11-23":"D","2027-11-24":"N","2027-11-25":"N","2027-12-01":"D","2027-12-02":"D","2027-12-03":"N","2027-12-04":"N","2027-12-05":"N","2027-12-10":"D","2027-12-11":"D","2027-12-12":"D","2027-12-13":"N","2027-12-14":"N","2027-12-20":"D","2027-12-21":"D","2027-12-22":"N","2027-12-23":"N","2027-12-29":"D","2027-12-30":"D","2027-12-31":"N"},"Janelle Koehler":{"2026-01-02":"-","2026-01-03":"-","2026-01-04":"-","2026-01-05":"-","2026-01-06":"-","2026-01-12":"-","2026-01-13":"-","2026-01-14":"-","2026-01-15":"-","2026-01-21":"-","2026-01-22":"-","2026-01-23":"-","2026-01-24":"-","2026-01-25":"-","2026-01-30":"D","2026-01-31":"-","2026-02-01":"D","2026-02-02":"N","2026-02-03":"N","2026-02-09":"D","2026-02-10":"D","2026-02-11":"N","2026-02-12":"N","2026-02-18":"D","2026-02-19":"D","2026-02-20":"N","2026-02-21":"N","2026-02-22":"N","2026-02-27":"D","2026-02-28":"-","2026-03-01":"D","2026-03-02":"N","2026-03-03":"N","2026-03-09":"-","2026-03-10":"-","2026-03-11":"-","2026-03-12":"-","2026-03-18":"-","2026-03-19":"-","2026-03-20":"-","2026-03-21":"-","2026-03-22":"-","2026-03-27":"D","2026-03-28":"-","2026-03-29":"D","2026-03-30":"N","2026-03-31":"N","2026-04-06":"D","2026-04-07":"D","2026-04-08":"N","2026-04-09":"N","2026-04-15":"D","2026-04-16":"D","2026-04-17":"N","2026-04-18":"N","2026-04-19":"N","2026-04-24":"D","2026-04-25":"-","2026-04-26":"D","2026-04-27":"N","2026-04-28":"N","2026-05-04":"-","2026-05-05":"D","2026-05-06":"N","2026-05-07":"N","2026-05-13":"D","2026-05-14":"D","2026-05-15":"N","2026-05-16":"N","2026-05-17":"N","2026-05-22":"D","2026-05-23":"-","2026-05-24":"D","2026-05-25":"N","2026-05-26":"N","2026-06-01":"D","2026-06-02":"D","2026-06-03":"N","2026-06-04":"N","2026-06-10":"D","2026-06-11":"D","2026-06-12":"N","2026-06-13":"N","2026-06-14":"N","2026-06-19":"D","2026-06-20":"-","2026-06-21":"D","2026-06-22":"N","2026-06-23":"-","2026-06-29":"D","2026-06-30":"D","2026-07-01":"N","2026-07-02":"N","2026-07-08":"D","2026-07-09":"D","2026-07-10":"N","2026-07-11":"N","2026-07-12":"N","2026-07-17":"D","2026-07-18":"-","2026-07-19":"D","2026-07-20":"N","2026-07-21":"N","2026-07-27":"D","2026-07-28":"D","2026-07-29":"N","2026-07-30":"N","2026-08-05":"D","2026-08-06":"D","2026-08-07":"-","2026-08-08":"N","2026-08-09":"N","2026-08-14":"D","2026-08-15":"-","2026-08-16":"D","2026-08-17":"N","2026-08-18":"N","2026-08-24":"-","2026-08-25":"-","2026-08-26":"N","2026-08-27":"N","2026-09-02":"D","2026-09-03":"D","2026-09-04":"N","2026-09-05":"N","2026-09-06":"N","2026-09-11":"D","2026-09-12":"-","2026-09-13":"D","2026-09-14":"N","2026-09-15":"-","2026-09-21":"D","2026-09-22":"D","2026-09-23":"N","2026-09-24":"N","2026-09-30":"D","2026-10-01":"D","2026-10-02":"D","2026-10-03":"-","2026-10-04":"D","2026-10-09":"D","2026-10-10":"-","2026-10-11":"D","2026-10-12":"D","2026-10-13":"D","2026-10-19":"-","2026-10-20":"-","2026-10-21":"-","2026-10-22":"-","2026-10-28":"D","2026-10-29":"D","2026-10-30":"N","2026-10-31":"N","2026-11-01":"N","2026-11-06":"D","2026-11-07":"-","2026-11-08":"D","2026-11-09":"N","2026-11-10":"N","2026-11-16":"D","2026-11-17":"D","2026-11-18":"-","2026-11-19":"N","2026-11-25":"D","2026-11-26":"D","2026-11-27":"N","2026-11-28":"N","2026-11-29":"N","2026-12-04":"D","2026-12-05":"-","2026-12-06":"D","2026-12-07":"N","2026-12-08":"N","2026-12-14":"D","2026-12-15":"D","2026-12-16":"N","2026-12-17":"N","2026-12-23":"D","2026-12-24":"D","2026-12-25":"N","2026-12-26":"N","2026-12-27":"N","2027-01-01":"D","2027-01-02":"-","2027-01-03":"D","2027-01-04":"N","2027-01-05":"N","2027-01-11":"D","2027-01-12":"D","2027-01-13":"N","2027-01-14":"N","2027-01-20":"D","2027-01-21":"D","2027-01-22":"N","2027-01-23":"N","2027-01-24":"N","2027-01-29":"D","2027-01-30":"-","2027-01-31":"D","2027-02-01":"N","2027-02-02":"N","2027-02-08":"D","2027-02-09":"D","2027-02-10":"N","2027-02-11":"N","2027-02-17":"D","2027-02-18":"D","2027-02-19":"N","2027-02-20":"N","2027-02-21":"N","2027-02-26":"D","2027-02-27":"-","2027-02-28":"D","2027-03-01":"N","2027-03-02":"N","2027-03-08":"D","2027-03-09":"D","2027-03-10":"N","2027-03-11":"N","2027-03-17":"D","2027-03-18":"D","2027-03-19":"-","2027-03-20":"-","2027-03-21":"-","2027-03-26":"-","2027-03-27":"-","2027-03-28":"-","2027-03-29":"-","2027-03-30":"-","2027-04-05":"D","2027-04-06":"D","2027-04-07":"N","2027-04-08":"N","2027-04-14":"D","2027-04-15":"D","2027-04-16":"N","2027-04-17":"N","2027-04-18":"N","2027-04-23":"D","2027-04-24":"-","2027-04-25":"D","2027-04-26":"N","2027-04-27":"N","2027-05-03":"D","2027-05-04":"D","2027-05-05":"N","2027-05-06":"N","2027-05-12":"D","2027-05-13":"D","2027-05-14":"N","2027-05-15":"N","2027-05-16":"N","2027-05-21":"D","2027-05-22":"-","2027-05-23":"D","2027-05-24":"N","2027-05-25":"N","2027-05-31":"D","2027-06-01":"D","2027-06-02":"N","2027-06-03":"N","2027-06-09":"D","2027-06-10":"D","2027-06-11":"N","2027-06-12":"N","2027-06-13":"N","2027-06-18":"D","2027-06-19":"-","2027-06-20":"D","2027-06-21":"N","2027-06-22":"N","2027-06-28":"D","2027-06-29":"D","2027-06-30":"N","2027-07-01":"N","2027-07-07":"D","2027-07-08":"D","2027-07-09":"N","2027-07-10":"N","2027-07-11":"N","2027-07-16":"D","2027-07-17":"-","2027-07-18":"D","2027-07-19":"N","2027-07-20":"N","2027-07-26":"D","2027-07-27":"D","2027-07-28":"N","2027-07-29":"N","2027-08-04":"D","2027-08-05":"D","2027-08-06":"N","2027-08-07":"N","2027-08-08":"N","2027-08-13":"D","2027-08-14":"-","2027-08-15":"D","2027-08-16":"N","2027-08-17":"N","2027-08-23":"D","2027-08-24":"D","2027-08-25":"N","2027-08-26":"N","2027-09-01":"D","2027-09-02":"D","2027-09-03":"N","2027-09-04":"N","2027-09-05":"N","2027-09-10":"D","2027-09-11":"-","2027-09-12":"D","2027-09-13":"N","2027-09-14":"N","2027-09-20":"D","2027-09-21":"D","2027-09-22":"N","2027-09-23":"N","2027-09-29":"D","2027-09-30":"D","2027-10-01":"N","2027-10-02":"N","2027-10-03":"N","2027-10-08":"D","2027-10-09":"-","2027-10-10":"D","2027-10-11":"N","2027-10-12":"N","2027-10-18":"D","2027-10-19":"D","2027-10-20":"N","2027-10-21":"N","2027-10-27":"D","2027-10-28":"D","2027-10-29":"N","2027-10-30":"N","2027-10-31":"N","2027-11-05":"D","2027-11-06":"-","2027-11-07":"D","2027-11-08":"N","2027-11-09":"N","2027-11-15":"D","2027-11-16":"D","2027-11-17":"N","2027-11-18":"N","2027-11-24":"D","2027-11-25":"D","2027-11-26":"N","2027-11-27":"N","2027-11-28":"N","2027-12-03":"D","2027-12-04":"-","2027-12-05":"D","2027-12-06":"N","2027-12-07":"N","2027-12-13":"D","2027-12-14":"D","2027-12-15":"N","2027-12-16":"N","2027-12-22":"D","2027-12-23":"D","2027-12-24":"N","2027-12-25":"N","2027-12-26":"N","2027-12-31":"D"},"Sean Campbell":{"2026-01-02":"D","2026-01-03":"D","2026-01-04":"D","2026-01-05":"D","2026-01-06":"D","2026-01-07":"N","2026-01-08":"N","2026-01-15":"D","2026-01-16":"D","2026-01-17":"D","2026-01-18":"D","2026-01-19":"N","2026-01-20":"N","2026-01-25":"D","2026-01-26":"D","2026-01-27":"D","2026-01-28":"N","2026-01-29":"N","2026-02-02":"D","2026-02-03":"D","2026-02-04":"D","2026-02-05":"D","2026-02-11":"D","2026-02-12":"D","2026-02-13":"D","2026-02-14":"D","2026-02-15":"D","2026-02-20":"D","2026-02-21":"D","2026-02-22":"D","2026-02-23":"D","2026-02-24":"D","2026-03-02":"D","2026-03-03":"D","2026-03-04":"D","2026-03-05":"-","2026-03-11":"D","2026-03-12":"D","2026-03-13":"D","2026-03-14":"D","2026-03-15":"-","2026-03-20":"D","2026-03-21":"D","2026-03-22":"D","2026-03-23":"D","2026-03-24":"D","2026-03-30":"D","2026-03-31":"D","2026-04-01":"N","2026-04-02":"N","2026-04-08":"-","2026-04-09":"-","2026-04-10":"-","2026-04-11":"-","2026-04-12":"-","2026-04-17":"-","2026-04-18":"-","2026-04-19":"-","2026-04-20":"-","2026-04-21":"-","2026-04-22":"D","2026-04-23":"D","2026-04-24":"D","2026-04-25":"D","2026-04-26":"D","2026-04-27":"D","2026-04-28":"D","2026-04-29":"D","2026-05-06":"D","2026-05-07":"D","2026-05-08":"D","2026-05-09":"D","2026-05-10":"D","2026-05-11":"D","2026-05-12":"D","2026-05-13":"-","2026-05-20":"D","2026-05-21":"D","2026-05-22":"D","2026-05-23":"D","2026-05-24":"D","2026-05-25":"D","2026-05-26":"D","2026-05-27":"-","2026-06-03":"D","2026-06-04":"D","2026-06-05":"N","2026-06-06":"N","2026-06-07":"N","2026-06-08":"N","2026-06-09":"N","2026-06-17":"D","2026-06-18":"D","2026-06-19":"D","2026-06-20":"D","2026-06-21":"D","2026-06-22":"D","2026-06-23":"D","2026-06-24":"D","2026-07-01":"D","2026-07-02":"D","2026-07-03":"D","2026-07-04":"D","2026-07-05":"D","2026-07-06":"D","2026-07-07":"D","2026-07-08":"D","2026-07-15":"D","2026-07-16":"D","2026-07-17":"D","2026-07-18":"D","2026-07-19":"D","2026-07-20":"D","2026-07-21":"D","2026-07-22":"D","2026-07-29":"D","2026-07-30":"D","2026-07-31":"D","2026-08-01":"D","2026-08-02":"D","2026-08-03":"N","2026-08-04":"N","2026-08-12":"D","2026-08-13":"D","2026-08-14":"-","2026-08-15":"-","2026-08-16":"-","2026-08-17":"-","2026-08-18":"-","2026-08-19":"-","2026-08-26":"D","2026-08-27":"D","2026-08-28":"D","2026-08-29":"D","2026-08-30":"D","2026-08-31":"D","2026-09-01":"D","2026-09-02":"D","2026-09-09":"D","2026-09-10":"D","2026-09-11":"D","2026-09-12":"D","2026-09-13":"D","2026-09-14":"D","2026-09-15":"D","2026-09-16":"D","2026-09-23":"-","2026-09-24":"-","2026-09-25":"-","2026-09-26":"-","2026-09-27":"-","2026-09-28":"-","2026-09-29":"-","2026-09-30":"-","2026-10-05":"N","2026-10-06":"N","2026-10-07":"N","2026-10-08":"N","2026-10-09":"-","2026-10-10":"-","2026-10-11":"-","2026-10-21":"D","2026-10-22":"D","2026-10-23":"D","2026-10-24":"D","2026-10-25":"D","2026-10-26":"D","2026-10-27":"D","2026-10-28":"D","2026-11-04":"D","2026-11-05":"D","2026-11-06":"D","2026-11-07":"D","2026-11-08":"D","2026-11-09":"D","2026-11-10":"D","2026-11-11":"D","2026-11-18":"D","2026-11-19":"D","2026-11-20":"D","2026-11-21":"D","2026-11-22":"D","2026-11-23":"D","2026-11-24":"D","2026-11-25":"D","2026-12-02":"D","2026-12-03":"D","2026-12-04":"D","2026-12-05":"D","2026-12-06":"D","2026-12-07":"D","2026-12-08":"D","2026-12-09":"D","2026-12-16":"D","2026-12-17":"D","2026-12-18":"D","2026-12-19":"D","2026-12-20":"D","2026-12-21":"D","2026-12-22":"D","2026-12-23":"D","2026-12-30":"D","2026-12-31":"D","2027-01-01":"D","2027-01-02":"D","2027-01-03":"D","2027-01-04":"D","2027-01-05":"D","2027-01-06":"D","2027-01-13":"D","2027-01-14":"D","2027-01-15":"D","2027-01-16":"D","2027-01-17":"D","2027-01-18":"D","2027-01-19":"D","2027-01-20":"D","2027-01-27":"D","2027-01-28":"D","2027-01-29":"D","2027-01-30":"D","2027-01-31":"D","2027-02-01":"D","2027-02-02":"D","2027-02-03":"D","2027-02-10":"D","2027-02-11":"D","2027-02-12":"D","2027-02-13":"D","2027-02-14":"D","2027-02-15":"D","2027-02-16":"D","2027-02-17":"D","2027-02-24":"D","2027-02-25":"D","2027-02-26":"D","2027-02-27":"D","2027-02-28":"D","2027-03-01":"D","2027-03-02":"D","2027-03-03":"D","2027-03-10":"D","2027-03-11":"D","2027-03-12":"D","2027-03-13":"D","2027-03-14":"D","2027-03-15":"D","2027-03-16":"D","2027-03-17":"D","2027-03-24":"D","2027-03-25":"D","2027-03-26":"D","2027-03-27":"D","2027-03-28":"D","2027-03-29":"D","2027-03-30":"D","2027-03-31":"D","2027-04-07":"D","2027-04-08":"D","2027-04-09":"D","2027-04-10":"D","2027-04-11":"D","2027-04-12":"D","2027-04-13":"D","2027-04-14":"D","2027-04-21":"D","2027-04-22":"D","2027-04-23":"D","2027-04-24":"D","2027-04-25":"D","2027-04-26":"D","2027-04-27":"D","2027-04-28":"D","2027-05-05":"D","2027-05-06":"D","2027-05-07":"D","2027-05-08":"D","2027-05-09":"D","2027-05-10":"D","2027-05-11":"D","2027-05-12":"D","2027-05-19":"D","2027-05-20":"D","2027-05-21":"D","2027-05-22":"D","2027-05-23":"D","2027-05-24":"D","2027-05-25":"D","2027-05-26":"D","2027-06-02":"D","2027-06-03":"D","2027-06-04":"D","2027-06-05":"D","2027-06-06":"D","2027-06-07":"D","2027-06-08":"D","2027-06-09":"D","2027-06-16":"D","2027-06-17":"D","2027-06-18":"D","2027-06-19":"D","2027-06-20":"D","2027-06-21":"D","2027-06-22":"D","2027-06-23":"D","2027-06-30":"D","2027-07-01":"D","2027-07-02":"D","2027-07-03":"D","2027-07-04":"D","2027-07-05":"D","2027-07-06":"D","2027-07-07":"D","2027-07-14":"D","2027-07-15":"D","2027-07-16":"D","2027-07-17":"D","2027-07-18":"D","2027-07-19":"D","2027-07-20":"D","2027-07-21":"D","2027-07-28":"D","2027-07-29":"D","2027-07-30":"D","2027-07-31":"D","2027-08-01":"D","2027-08-02":"D","2027-08-03":"D","2027-08-04":"D","2027-08-11":"D","2027-08-12":"D","2027-08-13":"D","2027-08-14":"D","2027-08-15":"D","2027-08-16":"D","2027-08-17":"D","2027-08-18":"D","2027-08-25":"D","2027-08-26":"D","2027-08-27":"D","2027-08-28":"D","2027-08-29":"D","2027-08-30":"D","2027-08-31":"D","2027-09-01":"D","2027-09-08":"D","2027-09-09":"D","2027-09-10":"D","2027-09-11":"D","2027-09-12":"D","2027-09-13":"D","2027-09-14":"D","2027-09-15":"D","2027-09-22":"D","2027-09-23":"D","2027-09-24":"D","2027-09-25":"D","2027-09-26":"D","2027-09-27":"D","2027-09-28":"D","2027-09-29":"D","2027-10-06":"D","2027-10-07":"D","2027-10-08":"D","2027-10-09":"D","2027-10-10":"D","2027-10-11":"D","2027-10-12":"D","2027-10-13":"D","2027-10-20":"D","2027-10-21":"D","2027-10-22":"D","2027-10-23":"D","2027-10-24":"D","2027-10-25":"D","2027-10-26":"D","2027-10-27":"D","2027-11-03":"D","2027-11-04":"D","2027-11-05":"D","2027-11-06":"D","2027-11-07":"D","2027-11-08":"D","2027-11-09":"D","2027-11-10":"D","2027-11-17":"D","2027-11-18":"D","2027-11-19":"D","2027-11-20":"D","2027-11-21":"D","2027-11-22":"D","2027-11-23":"D","2027-11-24":"D","2027-12-01":"D","2027-12-02":"D","2027-12-03":"D","2027-12-04":"D","2027-12-05":"D","2027-12-06":"D","2027-12-07":"D","2027-12-08":"D","2027-12-15":"D","2027-12-16":"D","2027-12-17":"D","2027-12-18":"D","2027-12-19":"D","2027-12-20":"D","2027-12-21":"D","2027-12-22":"D","2027-12-29":"D","2027-12-30":"D","2027-12-31":"D"},"Bima Bin Artie":{"2026-01-05":"-","2026-01-06":"-","2026-01-07":"-","2026-01-08":"-","2026-01-14":"-","2026-01-15":"-","2026-01-16":"-","2026-01-17":"N","2026-01-18":"N","2026-01-23":"D","2026-01-24":"D","2026-01-25":"D","2026-01-26":"N","2026-01-27":"N","2026-02-02":"-","2026-02-03":"D","2026-02-04":"N","2026-02-05":"N","2026-02-11":"D","2026-02-12":"D","2026-02-13":"N","2026-02-14":"N","2026-02-15":"N","2026-02-20":"D","2026-02-21":"D","2026-02-22":"D","2026-02-23":"N","2026-02-24":"N","2026-03-02":"D","2026-03-03":"D","2026-03-04":"N","2026-03-05":"N","2026-03-11":"D","2026-03-12":"D","2026-03-13":"N","2026-03-14":"N","2026-03-15":"-","2026-03-20":"D","2026-03-21":"D","2026-03-22":"D","2026-03-23":"N","2026-03-24":"N","2026-03-30":"-","2026-03-31":"-","2026-04-01":"-","2026-04-02":"-","2026-04-08":"D","2026-04-09":"D","2026-04-10":"N","2026-04-11":"N","2026-04-12":"N","2026-04-17":"D","2026-04-18":"D","2026-04-19":"D","2026-04-20":"N","2026-04-21":"-","2026-04-27":"D","2026-04-28":"D","2026-04-29":"N","2026-04-30":"N","2026-05-06":"D","2026-05-07":"D","2026-05-08":"N","2026-05-09":"N","2026-05-10":"N","2026-05-15":"D","2026-05-16":"D","2026-05-17":"D","2026-05-18":"N","2026-05-19":"N","2026-05-25":"-","2026-05-26":"D","2026-05-27":"N","2026-05-28":"N","2026-06-03":"D","2026-06-04":"D","2026-06-05":"-","2026-06-06":"-","2026-06-07":"-","2026-06-12":"-","2026-06-13":"-","2026-06-14":"-","2026-06-15":"-","2026-06-16":"-","2026-06-22":"D","2026-06-23":"D","2026-06-24":"N","2026-06-25":"N","2026-07-01":"D","2026-07-02":"D","2026-07-03":"N","2026-07-04":"N","2026-07-05":"N","2026-07-10":"D","2026-07-11":"D","2026-07-12":"D","2026-07-13":"N","2026-07-14":"-","2026-07-20":"D","2026-07-21":"D","2026-07-22":"N","2026-07-23":"-","2026-07-29":"D","2026-07-30":"D","2026-07-31":"N","2026-08-01":"N","2026-08-02":"N","2026-08-07":"D","2026-08-08":"D","2026-08-09":"D","2026-08-10":"N","2026-08-11":"N","2026-08-17":"D","2026-08-18":"D","2026-08-19":"N","2026-08-20":"N","2026-08-26":"D","2026-08-27":"D","2026-08-28":"N","2026-08-29":"N","2026-08-30":"-","2026-09-04":"D","2026-09-05":"D","2026-09-06":"D","2026-09-07":"N","2026-09-08":"N","2026-09-14":"-","2026-09-15":"D","2026-09-16":"N","2026-09-17":"N","2026-09-23":"D","2026-09-24":"D","2026-09-25":"N","2026-09-26":"N","2026-09-27":"N","2026-10-02":"-","2026-10-03":"-","2026-10-04":"-","2026-10-05":"-","2026-10-06":"-","2026-10-12":"-","2026-10-13":"-","2026-10-14":"-","2026-10-15":"-","2026-10-21":"D","2026-10-22":"N","2026-10-23":"N","2026-10-24":"N","2026-10-25":"N","2026-10-30":"D","2026-10-31":"D","2026-11-01":"D","2026-11-02":"N","2026-11-03":"N","2026-11-09":"D","2026-11-10":"D","2026-11-11":"N","2026-11-12":"N","2026-11-18":"D","2026-11-19":"D","2026-11-20":"N","2026-11-21":"N","2026-11-22":"N","2026-11-27":"D","2026-11-28":"D","2026-11-29":"D","2026-11-30":"N","2026-12-01":"N","2026-12-07":"D","2026-12-08":"D","2026-12-09":"N","2026-12-10":"N","2026-12-16":"D","2026-12-17":"D","2026-12-18":"N","2026-12-19":"N","2026-12-20":"N","2026-12-25":"-","2026-12-26":"-","2026-12-27":"-","2026-12-28":"-","2026-12-29":"-","2027-01-04":"-","2027-01-05":"-","2027-01-06":"-","2027-01-07":"-","2027-01-13":"D","2027-01-14":"D","2027-01-15":"N","2027-01-16":"N","2027-01-17":"N","2027-01-22":"D","2027-01-23":"D","2027-01-24":"D","2027-01-25":"N","2027-01-26":"N","2027-02-01":"D","2027-02-02":"D","2027-02-03":"N","2027-02-04":"N","2027-02-10":"D","2027-02-11":"D","2027-02-12":"N","2027-02-13":"N","2027-02-14":"N","2027-02-19":"D","2027-02-20":"D","2027-02-21":"D","2027-02-22":"N","2027-02-23":"N","2027-03-01":"D","2027-03-02":"D","2027-03-03":"N","2027-03-04":"N","2027-03-10":"D","2027-03-11":"D","2027-03-12":"N","2027-03-13":"N","2027-03-14":"N","2027-03-19":"D","2027-03-20":"D","2027-03-21":"D","2027-03-22":"N","2027-03-23":"N","2027-03-29":"D","2027-03-30":"D","2027-03-31":"N","2027-04-01":"N","2027-04-07":"D","2027-04-08":"D","2027-04-09":"N","2027-04-10":"N","2027-04-11":"N","2027-04-16":"D","2027-04-17":"D","2027-04-18":"D","2027-04-19":"N","2027-04-20":"N","2027-04-26":"D","2027-04-27":"D","2027-04-28":"N","2027-04-29":"N","2027-05-05":"D","2027-05-06":"D","2027-05-07":"N","2027-05-08":"N","2027-05-09":"N","2027-05-14":"D","2027-05-15":"D","2027-05-16":"D","2027-05-17":"N","2027-05-18":"N","2027-05-24":"D","2027-05-25":"D","2027-05-26":"N","2027-05-27":"N","2027-06-02":"D","2027-06-03":"D","2027-06-04":"N","2027-06-05":"N","2027-06-06":"N","2027-06-11":"D","2027-06-12":"D","2027-06-13":"D","2027-06-14":"N","2027-06-15":"N","2027-06-21":"D","2027-06-22":"D","2027-06-23":"N","2027-06-24":"N","2027-06-30":"D","2027-07-01":"D","2027-07-02":"N","2027-07-03":"N","2027-07-04":"N","2027-07-09":"D","2027-07-10":"D","2027-07-11":"D","2027-07-12":"N","2027-07-13":"N","2027-07-19":"D","2027-07-20":"D","2027-07-21":"N","2027-07-22":"N","2027-07-28":"D","2027-07-29":"D","2027-07-30":"N","2027-07-31":"N","2027-08-01":"N","2027-08-06":"D","2027-08-07":"D","2027-08-08":"D","2027-08-09":"N","2027-08-10":"N","2027-08-16":"D","2027-08-17":"D","2027-08-18":"N","2027-08-19":"N","2027-08-25":"D","2027-08-26":"D","2027-08-27":"N","2027-08-28":"N","2027-08-29":"N","2027-09-03":"D","2027-09-04":"D","2027-09-05":"D","2027-09-06":"N","2027-09-07":"N","2027-09-13":"D","2027-09-14":"D","2027-09-15":"N","2027-09-16":"N","2027-09-22":"D","2027-09-23":"D","2027-09-24":"N","2027-09-25":"N","2027-09-26":"N","2027-10-01":"D","2027-10-02":"D","2027-10-03":"D","2027-10-04":"N","2027-10-05":"N","2027-10-11":"D","2027-10-12":"D","2027-10-13":"N","2027-10-14":"N","2027-10-20":"D","2027-10-21":"D","2027-10-22":"N","2027-10-23":"N","2027-10-24":"N","2027-10-29":"D","2027-10-30":"D","2027-10-31":"D","2027-11-01":"N","2027-11-02":"N","2027-11-08":"D","2027-11-09":"D","2027-11-10":"N","2027-11-11":"N","2027-11-17":"D","2027-11-18":"D","2027-11-19":"N","2027-11-20":"N","2027-11-21":"N","2027-11-26":"D","2027-11-27":"D","2027-11-28":"D","2027-11-29":"N","2027-11-30":"N","2027-12-06":"D","2027-12-07":"D","2027-12-08":"N","2027-12-09":"N","2027-12-15":"D","2027-12-16":"D","2027-12-17":"N","2027-12-18":"N","2027-12-19":"N","2027-12-24":"D","2027-12-25":"D","2027-12-26":"D","2027-12-27":"N","2027-12-28":"N"},"Courtney Andrews":{"2026-01-01":"N","2026-01-07":"D","2026-01-08":"D","2026-01-09":"N","2026-01-10":"N","2026-01-11":"N","2026-01-16":"-","2026-01-17":"-","2026-01-18":"-","2026-01-19":"-","2026-01-20":"-","2026-01-26":"-","2026-01-27":"-","2026-01-28":"-","2026-01-29":"-","2026-02-04":"D","2026-02-05":"D","2026-02-06":"N","2026-02-07":"N","2026-02-08":"N","2026-02-13":"-","2026-02-14":"-","2026-02-15":"D","2026-02-16":"N","2026-02-17":"N","2026-02-23":"D","2026-02-24":"D","2026-02-25":"N","2026-02-26":"N","2026-03-04":"D","2026-03-05":"D","2026-03-06":"N","2026-03-07":"N","2026-03-08":"N","2026-03-13":"-","2026-03-14":"-","2026-03-15":"D","2026-03-16":"N","2026-03-17":"N","2026-03-23":"D","2026-03-24":"D","2026-03-25":"N","2026-03-26":"N","2026-04-01":"D","2026-04-02":"D","2026-04-03":"N","2026-04-04":"N","2026-04-05":"N","2026-04-10":"D","2026-04-11":"D","2026-04-12":"D","2026-04-13":"N","2026-04-14":"N","2026-04-20":"D","2026-04-21":"D","2026-04-22":"N","2026-04-23":"N","2026-04-29":"D","2026-04-30":"D","2026-05-01":"N","2026-05-02":"N","2026-05-03":"-","2026-05-05":"-","2026-05-06":"-","2026-05-07":"-","2026-05-08":"D","2026-05-09":"-","2026-05-10":"-","2026-05-11":"-","2026-05-12":"-","2026-05-15":"-","2026-05-18":"D","2026-05-19":"D","2026-05-20":"N","2026-05-21":"N","2026-05-27":"D","2026-05-28":"D","2026-05-29":"N","2026-05-30":"N","2026-05-31":"-","2026-06-02":"-","2026-06-05":"D","2026-06-06":"D","2026-06-07":"D","2026-06-08":"N","2026-06-09":"N","2026-06-11":"-","2026-06-15":"D","2026-06-16":"D","2026-06-17":"-","2026-06-18":"N","2026-06-22":"-","2026-06-24":"D","2026-06-25":"D","2026-06-26":"N","2026-06-27":"N","2026-06-28":"N","2026-07-03":"D","2026-07-04":"-","2026-07-05":"D","2026-07-06":"N","2026-07-07":"N","2026-07-13":"-","2026-07-14":"D","2026-07-15":"N","2026-07-16":"N","2026-07-22":"D","2026-07-23":"D","2026-07-24":"-","2026-07-25":"-","2026-07-26":"-","2026-07-31":"-","2026-08-01":"-","2026-08-02":"-","2026-08-03":"-","2026-08-04":"-","2026-08-10":"D","2026-08-11":"D","2026-08-12":"N","2026-08-13":"N","2026-08-19":"D","2026-08-20":"D","2026-08-21":"N","2026-08-22":"N","2026-08-23":"N","2026-08-28":"D","2026-08-29":"D","2026-08-30":"D","2026-08-31":"N","2026-09-01":"N","2026-09-07":"D","2026-09-08":"D","2026-09-09":"N","2026-09-10":"N","2026-09-16":"D","2026-09-17":"D","2026-09-18":"N","2026-09-19":"N","2026-09-20":"-","2026-09-25":"D","2026-09-26":"D","2026-09-27":"D","2026-09-28":"N","2026-09-29":"N","2026-10-05":"-","2026-10-06":"-","2026-10-07":"-","2026-10-08":"-","2026-10-14":"-","2026-10-15":"-","2026-10-16":"-","2026-10-17":"-","2026-10-18":"-","2026-10-23":"D","2026-10-24":"D","2026-10-25":"D","2026-10-26":"N","2026-10-27":"N","2026-11-02":"D","2026-11-03":"D","2026-11-04":"N","2026-11-05":"N","2026-11-11":"D","2026-11-12":"D","2026-11-13":"N","2026-11-14":"N","2026-11-15":"N","2026-11-20":"D","2026-11-21":"D","2026-11-22":"D","2026-11-23":"N","2026-11-24":"N","2026-11-30":"D","2026-12-01":"D","2026-12-02":"N","2026-12-03":"N","2026-12-09":"D","2026-12-10":"D","2026-12-11":"N","2026-12-12":"N","2026-12-13":"N","2026-12-18":"D","2026-12-19":"D","2026-12-20":"D","2026-12-21":"N","2026-12-22":"N","2026-12-28":"-","2026-12-29":"-","2026-12-30":"-","2026-12-31":"-","2027-01-06":"-","2027-01-07":"-","2027-01-08":"-","2027-01-09":"-","2027-01-10":"-","2027-01-15":"-","2027-01-16":"-","2027-01-17":"-","2027-01-18":"-","2027-01-19":"-","2027-01-25":"D","2027-01-26":"-","2027-01-27":"N","2027-01-28":"N","2027-02-03":"D","2027-02-04":"D","2027-02-05":"N","2027-02-06":"N","2027-02-07":"N","2027-02-12":"D","2027-02-13":"D","2027-02-14":"D","2027-02-15":"N","2027-02-16":"N","2027-02-22":"D","2027-02-23":"D","2027-02-24":"N","2027-02-25":"N","2027-03-03":"D","2027-03-04":"D","2027-03-05":"N","2027-03-06":"N","2027-03-07":"N","2027-03-12":"D","2027-03-13":"D","2027-03-14":"D","2027-03-15":"N","2027-03-16":"N","2027-03-22":"D","2027-03-23":"D","2027-03-24":"N","2027-03-25":"N","2027-03-31":"D","2027-04-01":"D","2027-04-02":"N","2027-04-03":"N","2027-04-04":"N","2027-04-09":"D","2027-04-10":"D","2027-04-11":"D","2027-04-12":"N","2027-04-13":"N","2027-04-19":"D","2027-04-20":"D","2027-04-21":"N","2027-04-22":"N","2027-04-28":"D","2027-04-29":"D","2027-04-30":"N","2027-05-01":"N","2027-05-02":"N","2027-05-07":"D","2027-05-08":"D","2027-05-09":"D","2027-05-10":"N","2027-05-11":"N","2027-05-17":"D","2027-05-18":"D","2027-05-19":"N","2027-05-20":"N","2027-05-26":"D","2027-05-27":"D","2027-05-28":"N","2027-05-29":"N","2027-05-30":"N","2027-06-04":"D","2027-06-05":"D","2027-06-06":"D","2027-06-07":"N","2027-06-08":"N","2027-06-14":"D","2027-06-15":"D","2027-06-16":"N","2027-06-17":"N","2027-06-23":"D","2027-06-24":"D","2027-06-25":"N","2027-06-26":"N","2027-06-27":"N","2027-07-02":"D","2027-07-03":"D","2027-07-04":"D","2027-07-05":"N","2027-07-06":"N","2027-07-12":"D","2027-07-13":"D","2027-07-14":"N","2027-07-15":"N","2027-07-21":"D","2027-07-22":"D","2027-07-23":"N","2027-07-24":"N","2027-07-25":"N","2027-07-30":"D","2027-07-31":"D","2027-08-01":"D","2027-08-02":"N","2027-08-03":"N","2027-08-09":"D","2027-08-10":"D","2027-08-11":"N","2027-08-12":"N","2027-08-18":"D","2027-08-19":"D","2027-08-20":"N","2027-08-21":"N","2027-08-22":"N","2027-08-27":"D","2027-08-28":"D","2027-08-29":"D","2027-08-30":"N","2027-08-31":"N","2027-09-06":"D","2027-09-07":"D","2027-09-08":"N","2027-09-09":"N","2027-09-15":"D","2027-09-16":"D","2027-09-17":"N","2027-09-18":"N","2027-09-19":"N","2027-09-24":"D","2027-09-25":"D","2027-09-26":"D","2027-09-27":"N","2027-09-28":"N","2027-10-04":"D","2027-10-05":"D","2027-10-06":"N","2027-10-07":"N","2027-10-13":"D","2027-10-14":"D","2027-10-15":"N","2027-10-16":"N","2027-10-17":"N","2027-10-22":"D","2027-10-23":"D","2027-10-24":"D","2027-10-25":"N","2027-10-26":"N","2027-11-01":"D","2027-11-02":"D","2027-11-03":"N","2027-11-04":"N","2027-11-10":"D","2027-11-11":"D","2027-11-12":"N","2027-11-13":"N","2027-11-14":"N","2027-11-19":"D","2027-11-20":"D","2027-11-21":"D","2027-11-22":"N","2027-11-23":"N","2027-11-29":"D","2027-11-30":"D","2027-12-01":"N","2027-12-02":"N","2027-12-08":"D","2027-12-09":"D","2027-12-10":"N","2027-12-11":"N","2027-12-12":"N","2027-12-17":"D","2027-12-18":"D","2027-12-19":"D","2027-12-20":"N","2027-12-21":"N","2027-12-27":"D","2027-12-28":"D","2027-12-29":"N","2027-12-30":"N"}}};
+var ROT_T="DDNN-----DDNNN----DDDNN-----",ROT_EP=Date.UTC(2026,0,1),CREWS={A:"Dan Smith",B:"Bima Bin Artie",C:"Janelle Koehler",D:"Courtney Andrews"},ROT_OFF={A:10,B:24,C:17,D:3},FIT={},ROSTER_SRC="built in (to "+rosterEnd()+")";
+function rosterEnd(){var mx="";Object.keys(ROSTER.data||{}).forEach(function(n){Object.keys(ROSTER.data[n]).forEach(function(d){if(d>mx)mx=d})});return mx?new Date(mx+"T12:00").toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"}):"?"}
+function fitOffsets(){Object.keys(CREWS).forEach(function(c){var dd=(ROSTER.data||{})[CREWS[c]]||{},best=-1e9,bo=ROT_OFF[c],bok=0,bt=0;
+  for(var o=0;o<28;o++){var sc=0,ok=0,t=0;for(var d in dd){var sl=slotOf(dd[d]);if(!sl)continue;t++;if(ROT_T.charAt(((dIdx(d)+o)%28+28)%28)===sl){sc++;ok++}else sc--}if(t&&sc>best){best=sc;bo=o;bok=ok;bt=t}}
+  ROT_OFF[c]=bo;FIT[c]=bok+" of "+bt});RCACHE={}}
+function slimRoster(d){var o={};Object.keys(d||{}).forEach(function(n){o[n]={};Object.keys(d[n]||{}).forEach(function(k){var v=d[n][k];o[n][k]=/^(D|N|OT|OTN)$/.test(v)?v:"-"})});return o}
+function grabObj(t,start){var i=t.indexOf("{",start),dep=0,q=null;if(i<0)return null;for(var j=i;j<t.length;j++){var ch=t[j];if(q){if(ch==="\\")j++;else if(ch===q)q=null;continue}
+  if(ch==='"'||ch==="'")q=ch;else if(ch==="{")dep++;else if(ch==="}"&&--dep===0)return t.slice(i,j+1)}return null}
+function parseRosterFile(t){var data={},n=0,re=/\b(20\d\d)\s*:\s*\{\s*roster\s*:/g,m;
+  function add(d){Object.keys(d||{}).forEach(function(p){data[p]=data[p]||{};Object.keys(d[p]).forEach(function(k){data[p][k]=d[p][k]})});n++}
+  while((m=re.exec(t))){try{add(JSON.parse(grabObj(t,m.index+m[0].length)).data)}catch(e){}}
+  if(!n){var k=t.indexOf("const ROSTER = ");if(k>=0)try{add(JSON.parse(grabObj(t,k)).data)}catch(e){}}
+  if(!n)try{var J=JSON.parse(t);add(J.data||J)}catch(e){}
+  return n?slimRoster(data):null}
+try{var sr=JSON.parse(localStorage.getItem("pfd-roster-v1")||"null");if(sr&&sr.data){ROSTER={data:sr.data};ROSTER_SRC=sr.src}}catch(e){}
+function dIdx(d){return Math.round((Date.parse(d+"T00:00:00Z")-ROT_EP)/864e5)}
+function crewFor(d,h){for(var c in ROT_OFF)if(ROT_T.charAt(((dIdx(d)+ROT_OFF[c])%28+28)%28)===h)return c;return "?"}
+function slotOf(v){return v==="D"||v==="OT"?"D":v==="N"||v==="OTN"?"N":null}
+var RCACHE={};
+function shiftInfo(d,h){var k=d+h;if(RCACHE[k])return RCACHE[k];var c=crewFor(d,h),m=CREWS[c],D=ROSTER.data||{},has=Object.keys(D).some(function(n){return D[n][d]!==undefined}),
+  here=!!(m&&slotOf((D[m]||{})[d])===h),others=Object.keys(D).filter(function(n){return n!==m&&slotOf(D[n][d])===h});
+  return RCACHE[k]={c:c,m:m,has:has,here:here,cov:here?[]:others}}
+function crewTip(d,h){var x=shiftInfo(d,h);if(!x.has)return "Crew "+x.c+" (no roster data for this date)";
+  return "Crew "+x.c+": "+x.m+(x.here?" working":" away"+(x.cov.length?" – covered by "+x.cov.join(", "):" – no cover on the roster"))}
+fitOffsets();
+function crewBadge(e){var h=e.night?"N":"D",x=shiftInfo(e.day,h);return '<span class="crl" title="'+esc(crewTip(e.day,h))+'">'+x.c+(x.has&&!x.here?"*":"")+'</span>'}
+var S={crew:null,runs:{},m:null,view:"eq",info:false,q:"",day:null,sel:null,open:{},names:null,src:null,pick:null};
+
+/* ---------- theme ---------- */
+function setTheme(t){try{localStorage.setItem("pfd-theme",t)}catch(e){} if(t)document.documentElement.setAttribute("data-theme",t);else document.documentElement.removeAttribute("data-theme")}
+try{var th=localStorage.getItem("pfd-theme");if(th)setTheme(th)}catch(e){}
+$("bTheme").onclick=function(){var dark=document.documentElement.getAttribute("data-theme")==="dark"||(!document.documentElement.getAttribute("data-theme")&&matchMedia("(prefers-color-scheme: dark)").matches);setTheme(dark?"light":"dark")};
+
+/* ---------- names (built-in + remembered from settings folder) ---------- */
+function loadNames(){
+  var saved=null;try{saved=JSON.parse(localStorage.getItem("pfd-names-v1")||"null")}catch(e){}
+  S.src=saved&&saved._when?saved._when:null;
+  var out={};MACHS.forEach(function(m){out[m]=combine(PFD.DEFAULT_NAMES[m],saved&&saved[m])});
+  S.names=out;
+  $("nameNote").textContent=S.src?"Equipment names from your settings folder, read "+S.src+".":"Using built-in equipment names. Open the folder once for the full names of every place.";
+}
+function combine(def,fromFolder){
+  var N=PFD.mergeNames(def,null);
+  if(!fromFolder)return N;
+  // positions + bits from settings win; unit names: PM_NO > built-in > STATE.INI comment
+  ["pos","bits","nodeUnits"].forEach(function(k){Object.keys(fromFolder[k]||{}).forEach(function(x){N[k][x]=fromFolder[k][x]})});
+  Object.keys(fromFolder.pmno||{}).forEach(function(u){N.units[u]=fromFolder.pmno[u]});
+  Object.keys(fromFolder.units||{}).forEach(function(u){if(!N.units[u])N.units[u]=fromFolder.units[u]});
+  Object.keys(fromFolder.nodes||{}).forEach(function(n){if(!N.nodes[n])N.nodes[n]=fromFolder.nodes[n]});
+  return N;
+}
+loadNames();
+
+/* ---------- file helpers ---------- */
+function readText(f){return f.arrayBuffer().then(function(b){return new TextDecoder("windows-1252").decode(b)})}
+function readHead(f,n){return f.slice(0,n).arrayBuffer().then(function(b){return new TextDecoder("windows-1252").decode(b)})}
+async function readLines(f,cb,onBytes){
+  var dec=new TextDecoder("windows-1252"),rest="",done=0,k=0;
+  if(f.stream){
+    var rd=f.stream().getReader();
+    for(;;){var r=await rd.read();if(r.done)break;done+=r.value.length;var t=rest+dec.decode(r.value,{stream:true}),p=t.split("\n");rest=p.pop();
+      for(var i=0;i<p.length;i++)cb(p[i].charCodeAt(p[i].length-1)===13?p[i].slice(0,-1):p[i]);
+      onBytes(done);if(++k%8===0)await tick()}
+  }else{
+    var CH=4<<20;for(var o=0;o<f.size;o+=CH){var b=await f.slice(o,o+CH).arrayBuffer();var t2=rest+dec.decode(b,{stream:true}),p2=t2.split("\n");rest=p2.pop();p2.forEach(function(l){cb(l.replace(/\r$/,""))});onBytes(Math.min(o+CH,f.size));await tick()}
+  }
+  rest+=dec.decode();if(rest)cb(rest.replace(/\r$/,""));
+}
+function tick(){return new Promise(function(r){setTimeout(r,0)})}
+function prog(frac,txt){var p=$("prog");p.style.display=frac==null?"none":"block";if(frac!=null){p.querySelector("i").style.width=Math.round(frac*100)+"%";p.querySelector(".txt").textContent=txt||""}}
+function mb(n){return n>1048576?(n/1048576).toFixed(1)+" MB":Math.round(n/1024)+" KB"}
+
+function machineFromPath(p){
+  if(/Fusion and LOI|[\/\\]HAG([\/\\]|$)/i.test(p))return "HAG";
+  if(/Preparation and Analysis|[\/\\]Autochem([\/\\]|$)/i.test(p))return "Autochem";
+  if(/Splitting Sieving|[\/\\]RSPU([\/\\]|$)/i.test(p))return "RSPU";
+  return null;
+}
+var HINTS={HAG:/Oven ?\d|BeadBuffer|CrucibleAtSwingArm|RobotReady|Fusion procedure|Crucible \[/g,Autochem:/MCSAFunnelRdy|Cup_\d_Ready|HAG_TotalState|HP-MCSA|Empty Cup/g,RSPU:/Pos_Filled_|CheckOvenSamplesForSieving|Sizing_|Moisture_|Tara is with/g};
+function detect(txt){var best=null,bv=0;MACHS.forEach(function(m){var c=(txt.match(HINTS[m])||[]).length;if(c>bv){bv=c;best=m}});return best}
+function firstDate(txt){var m=txt.match(/(\d{4}-\d{2}-\d{2})\s+\d{2}:\d{2}/);return m?m[1]:null}
+
+/* ---------- open folder ---------- */
+$("bFolder").onclick=function(){$("dirIn").value="";$("dirIn").click()};
+$("bFiles").onclick=function(){$("fileIn").value="";$("fileIn").click()};
+document.querySelectorAll("[data-act]").forEach(function(b){b.onclick=function(){(b.dataset.act==="folder"?$("bFolder"):$("bFiles")).click()}});
+$("bRoster").onclick=function(){$("rosterIn").value="";$("rosterIn").click()};
+$("rosterIn").onchange=async function(){var f=this.files[0];if(!f)return;var d=parseRosterFile(await readText(f));
+  if(!d||!CREWS.A||!d[CREWS.A]){alert("That file doesn't contain the PMLB roster data.");return}
+  ROSTER={data:d};var src=f.name+", to "+rosterEnd();ROSTER_SRC=src;try{localStorage.setItem("pfd-roster-v1",JSON.stringify({data:d,src:src}))}catch(e){}
+  fitOffsets();alert("Roster loaded ("+Object.keys(d).length+" people, to "+rosterEnd()+").\nCrew cycle fit – A "+FIT.A+", B "+FIT.B+", C "+FIT.C+", D "+FIT.D+" shifts.");if(S.m)render()};
+$("bClear").onclick=function(){S.runs={};S.m=null;S.sel=null;S.day=null;S.pick=null;$("res").style.display="none";$("picker").style.display="none";$("empty").style.display="block";prog(null)};
+
+$("dirIn").onchange=async function(){
+  var files=[].slice.call(this.files);if(!files.length)return;
+  prog(0,"Reading settings…");
+  var set={},logs=[];
+  files.forEach(function(f){
+    var p=f.webkitRelativePath||f.name;if(/_Archive/i.test(p))return;
+    var m=machineFromPath(p),nm=p.split(/[\/\\]/).pop();
+    if(m&&/[\/\\]kern[\/\\]ini[\/\\][^\/\\]+$/i.test(p)&&/^(STATE\.INI|PM_NO_\d+\.dat|PM_UN_\d+\.dat)$/i.test(nm)){(set[m]=set[m]||[]).push(f)}
+    else if(/^DIAGNOSE\.\d+$/i.test(nm))logs.push({f:f,m:m,p:p});
+  });
+  var saved={};try{saved=JSON.parse(localStorage.getItem("pfd-names-v1")||"{}")||{}}catch(e){}
+  var got=0;
+  for(var m in set){
+    var st=set[m].filter(function(f){return /STATE\.INI$/i.test(f.name)})[0];if(!st)continue;
+    var N=PFD.blankNames();PFD.parseStateIni(await readText(st),N);delete N._raw;
+    var cm=N.units;N.units={};
+    for(var i=0;i<set[m].length;i++){var f=set[m][i],a=f.name.match(/^PM_NO_(\d+)/i),b=f.name.match(/^PM_UN_(\d+)/i);
+      if(a)PFD.parsePmNo(a[1],await readText(f),N);else if(b)PFD.parsePmUn(b[1],await readText(f),N)}
+    N.pmno=N.units;N.units=cm;saved[m]=N;got++;
+  }
+  if(got){saved._when=new Date().toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"});try{localStorage.setItem("pfd-names-v1",JSON.stringify(saved))}catch(e){}loadNames()}
+  if(!logs.length){prog(null);alert(got?"Settings read for "+got+" machine(s). No DIAGNOSE logs were found in that folder – use Open log files.":"No Prepmaster settings or DIAGNOSE logs found in that folder.");return}
+  prog(0.05,"Checking log dates…");
+  for(var j=0;j<logs.length;j++){var h=await readHead(logs[j].f,4000);logs[j].date=firstDate(h);if(!logs[j].m)logs[j].m=detect(h)||"HAG";if(j%10===0)prog(0.05+0.9*j/logs.length,"Checking log dates…")}
+  prog(null);showPicker(logs.filter(function(l){return l.date&&l.f.size>0}));
+};
+
+$("fileIn").onchange=async function(){
+  var files=[].slice.call(this.files);if(!files.length)return;
+  var logs=[];prog(0,"Checking files…");
+  for(var i=0;i<files.length;i++){var h=await readHead(files[i],2<<20);logs.push({f:files[i],m:detect(h)||machineFromPath(files[i].name)||"HAG",date:firstDate(h)})}
+  readLogs(logs.filter(function(l){return l.date}));
+};
+
+function showPicker(logs){
+  S.pick=logs;var by={};logs.forEach(function(l){(by[l.m]=by[l.m]||[]).push(l)});
+  var h='<h2>Pick the days to read</h2><p class="note">'+logs.length+' DIAGNOSE logs found. The last 7 days of each machine are ticked. Bigger ranges take longer – about 10 s per 100 MB.</p>';
+  MACHS.forEach(function(m){var L=by[m];if(!L)return;L.sort(function(a,b){return a.date<b.date?-1:1});
+    var cut=L.length-7;
+    h+='<div class="pk-m"><h3>'+m+' <button data-all="'+m+'">All</button><button data-none="'+m+'">None</button></h3><div class="pk-days">';
+    L.forEach(function(l,i){var d=new Date(l.date+"T12:00");h+='<label><input type="checkbox" data-m="'+m+'" data-i="'+logs.indexOf(l)+'"'+(i>=cut?" checked":"")+'>'+d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"})+' <small>'+mb(l.f.size)+'</small></label>'});
+    h+='</div></div>'});
+  h+='<div class="pk-act"><button class="btn pri" id="bRead">Read selected logs</button><span class="note" id="pkSum"></span></div>';
+  var P=$("picker");P.innerHTML=h;P.style.display="block";$("empty").style.display="none";
+  function upd(){var n=0,s=0;P.querySelectorAll("input:checked").forEach(function(c){n++;s+=logs[+c.dataset.i].f.size});$("pkSum").textContent=n+" days · "+mb(s)}
+  P.onchange=upd;upd();
+  P.querySelectorAll("[data-all],[data-none]").forEach(function(b){b.onclick=function(){var m=b.dataset.all||b.dataset.none;P.querySelectorAll('input[data-m="'+m+'"]').forEach(function(c){c.checked=!!b.dataset.all});upd()}});
+  $("bRead").onclick=function(){var sel=[];P.querySelectorAll("input:checked").forEach(function(c){sel.push(logs[+c.dataset.i])});if(!sel.length)return;P.style.display="none";readLogs(sel)};
+}
+
+async function readLogs(logs){
+  $("empty").style.display="none";
+  var by={};logs.forEach(function(l){(by[l.m]=by[l.m]||[]).push(l)});
+  var total=logs.reduce(function(a,l){return a+l.f.size},0),done=0;
+  S.runs={};
+  for(var m of MACHS){var L=by[m];if(!L)continue;L.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0});
+    var R=PFD.newRun(m,S.names[m]);R.files=L.length;
+    for(var i=0;i<L.length;i++){var base=done;
+      await readLines(L[i].f,function(l){PFD.feed(R,l)},function(b){prog((base+b)/total,"Reading "+m+" · "+L[i].date+" ("+(i+1)+" of "+L.length+")")});
+      done+=L[i].f.size}
+    PFD.finish(R);R.machine=m;S.runs[m]=R}
+  prog(null);
+  S.m=MACHS.filter(function(m){return S.runs[m]})[0];S.sel=null;S.day=null;S.open={};
+  if(!S.m){alert("No readable DIAGNOSE lines found.");$("empty").style.display="block";return}
+  $("res").style.display="block";render();
+}
+
+/* ---------- equipment resolution ---------- */
+function eqOf(R,e){
+  var N=R.N,num=e.eqNum;
+  if(e._eq)return e._eq;
+  var r;
+  if(e.eqKind==="pos"){var x=PFD.posName(N,num);
+    r=x?{key:"u"+x.unit,label:x.unitName,code:"Unit "+x.unit,spot:x.spot,pos:num}:{key:"p"+num,label:"Place "+num,code:"Position "+num}}
+  else if(e.eqKind==="node"){var us=N.nodeUnits[num],u=us&&us.length?us[0]:num;r={key:"u"+u,label:PFD.nodeName(N,num)||PFD.unitName(N,u)||"Node "+num,code:"Node "+num+(us&&us.length?" · unit "+us.join(", "):"")}}
+  else if(e.eqKind==="unit"){r={key:"u"+num,label:PFD.unitName(N,num)||"Unit "+num,code:"Unit "+num}}
+  else if(e.eqKind==="robot"){var ru=robotUnit(R);r=ru?{key:"u"+ru,label:PFD.unitName(N,ru)||"Robot",code:"Unit "+ru}:{key:"s:robot",label:"Robot",code:"Robot signal"}}
+  else r={key:e.eqKey,label:e.eqText||"Prepmaster",code:e.code||"Prepmaster software"};
+  r.label=r.label.charAt(0).toUpperCase()+r.label.slice(1);
+  e._eq=r;return r;
+}
+function robotUnit(R){if(R._ru!==undefined)return R._ru;var c=null;
+  R.events.forEach(function(e){if(!c&&e.eqKind==="unit"&&/robot/i.test(PFD.unitName(R.N,e.eqNum)||""))c=e.eqNum});
+  if(!c)Object.keys(R.N.units).forEach(function(u){if(!c&&/^robot$/i.test(R.N.units[u]))c=u});
+  return R._ru=c}
+function codeSpan(text,code){return '<span class="pfd-code" title="'+esc(code)+'">'+esc(text)+'</span>'}
+function fill(R,e,t){var q=eqOf(R,e);
+  return String(t).replace("{EQ}",codeSpan(q.label,q.code)).replace("{POS}",e.posRef?PFD.posLabel(R.N,e.posRef):"its place")}
+function strip(h){var d=document.createElement("div");d.innerHTML=h;return d.textContent}
+
+/* ---------- filters ---------- */
+function visible(R){var q=S.q.toLowerCase();
+  return R.events.filter(function(e){
+    if(!S.info&&e.sev==="info")return false;
+    if(S.day&&(e.day!==S.day.d||(S.day.h&&(e.night?"N":"D")!==S.day.h)))return false;
+    if(S.crew&&crewFor(e.day,e.night?"N":"D")!==S.crew)return false;
+    if(q){var eq=eqOf(R,e);if((e.title+" "+e.h+" "+eq.label+" "+e.raw).toLowerCase().indexOf(q)<0)return false}
+    return true})}
+function dels(R){return R.deletions.filter(function(d){return (!S.day||(d.day===S.day.d&&(!S.day.h||(d.night?"N":"D")===S.day.h)))&&(!S.crew||crewFor(d.day,d.night?"N":"D")===S.crew)})}
+function incidents(ev){var L=ev.filter(function(e){return e.sev!=="info"}).sort(function(a,b){return a.ts-b.ts}),out=[],cur=null;
+  L.forEach(function(e){var end=Math.max(e.tsLast||e.ts,e.end||0);if(cur&&e.ts-cur.end<=180000){cur.ev.push(e);cur.end=Math.max(cur.end,end)}else{cur={ts:e.ts,end:end,ev:[e]};out.push(cur)}});
+  out.forEach(function(i){i.sev=i.ev.some(function(e){return e.sev==="fault"})?"fault":"warn";var st=i.ev.filter(function(e){return e.sev==="fault"})[0]||i.ev[0];i.start=st;i.down=i.ev.reduce(function(a,e){return a+(e.rule.indexOf("st:")===0?(e.downMs||0):0)},0)});return out}
+function incCount(R,ev){var g={};ev.forEach(function(e){var k=eqOf(R,e).key;(g[k]=g[k]||[]).push(e)});var n=0;for(var k in g)n+=incidents(g[k]).length;return n}
+function dur(ms){if(!ms)return "0 min";var m=Math.round(ms/60000);if(m<1)return Math.round(ms/1000)+" s";if(m<60)return m+" min";var h=Math.floor(m/60);return h+" h "+(m%60)+" min"}
+function when(ts){var d=new Date(ts);return d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"})+" "+d.toTimeString().slice(0,5)}
+function dn(e){return '<span class="dn '+(e.night?"n":"d")+'" title="'+(e.night?"Night shift":"Day shift")+'"></span>'}
+var SEVW={fault:0,warn:1,info:2},SEVT={fault:"Fault",warn:"Warning",info:"Information"};
+
+/* ---------- render ---------- */
+function render(){
+  var R=S.runs[S.m];
+  $("tabs").innerHTML=MACHS.filter(function(m){return S.runs[m]}).map(function(m){return '<button data-m="'+m+'"'+(m===S.m?' class="on"':'')+'>'+m+'</button>'}).join("")+'<span class="src">'+esc((S.src?"Names from settings folder, "+S.src:"Built-in names")+" · Roster "+ROSTER_SRC)+'</span>';
+  $("tabs").querySelectorAll("button").forEach(function(b){b.onclick=function(){S.m=b.dataset.m;S.sel=null;S.day=null;S.crew=null;S.open={};render()}});
+  var ev=visible(R),f=ev.filter(function(e){return e.sev==="fault"}).length,w=ev.filter(function(e){return e.sev==="warn"}).length;
+  var down=ev.reduce(function(a,e){return a+(e.rule.indexOf("st:")===0?(e.downMs||0):0)},0),D=dels(R);
+  var days=Object.keys(R.days).sort();
+  $("sum").innerHTML='<div class="f"><b>'+incCount(R,ev)+'</b><span>incidents</span></div><div class="f"><b>'+f+'</b><span>faults</span></div><div class="w"><b>'+w+'</b><span>warnings</span></div><div><b>'+dur(down)+'</b><span>equipment out of automatic</span></div><div><b>'+D.length+'</b><span>deleted by operators</span></div><div><b>'+(days.length?fmtD(days[0])+(days.length>1?" – "+fmtD(days[days.length-1]):""):"–")+'</b><span>'+R.files+' log file'+(R.files>1?"s":"")+', '+R.lines.toLocaleString()+' lines</span></div>';
+  ribbon(R,days);crewPanel(R,days);
+  $("dayChip").innerHTML=(S.day?'<span class="chip">'+fmtD(S.day.d)+(S.day.h?(S.day.h==="N"?" night":" day"):"")+' <button data-x="day" aria-label="Clear day filter">×</button></span> ':"")+(S.crew?'<span class="chip">Crew '+S.crew+' <button data-x="crew" aria-label="Clear crew filter">×</button></span>':"");
+  $("dayChip").querySelectorAll("button").forEach(function(b){b.onclick=function(){S[b.dataset.x]=null;render()}});
+  if(S.view==="eq")renderEq(R,ev);else renderFault(R,ev);
+  renderDels(R,D);
+}
+function fmtD(d){return new Date(d+"T12:00").toLocaleDateString("en-AU",{day:"numeric",month:"short"})}
+function ribbon(R,days){
+  var cnt={};R.events.forEach(function(e){if(e.sev==="info"&&!S.info)return;var k=e.day+(e.night?"N":"D");cnt[k]=(cnt[k]||0)+1});
+  var mx=1;for(var k in cnt)mx=Math.max(mx,cnt[k]);
+  var h='<div class="rh"><span>Faults and warnings per shift – top half day (06–18), bottom half night. Click a shift to focus on it.</span>'+(S.day?'<button id="rbAll">Show all days</button>':'')+'</div><div class="rb">';
+  days.forEach(function(d){var dd=new Date(d+"T12:00");
+    h+='<div class="rd">';["D","N"].forEach(function(x){var c=cnt[d+x]||0,on=S.day&&S.day.d===d&&S.day.h===x;
+      h+='<button class="'+(x==="D"?"d":"n")+(c?"":" zero")+(on?" sel":"")+'" style="--v:'+(c/mx).toFixed(2)+'" data-d="'+d+'" data-h="'+x+'" title="'+esc(fmtD(d)+(x==="D"?" day":" night")+': '+c+' · '+crewTip(d,x))+'">'+(c||"")+'</button>'});
+    h+='<small>'+dd.toLocaleDateString("en-AU",{weekday:"short"}).slice(0,2)+" "+dd.getDate()+'</small></div>'});
+  $("ribbon").innerHTML=h+'</div>';
+  $("ribbon").querySelectorAll(".rd button").forEach(function(b){b.onclick=function(){var d=b.dataset.d,x=b.dataset.h;S.day=S.day&&S.day.d===d&&S.day.h===x?null:{d:d,h:x};S.sel=null;render()}});
+  var ra=$("rbAll");if(ra)ra.onclick=function(){S.day=null;render()};
+}
+function crewPanel(R,days){
+  var keep=S.crew;S.crew=null;var ev=visible(R),D=dels(R);S.crew=keep;
+  var rows={};["A","B","C","D"].forEach(function(c){rows[c]={c:c,sh:0,cov:0,who:{},ev:[],del:0}});
+  days.forEach(function(d){["D","N"].forEach(function(h){if(S.day&&(S.day.d!==d||(S.day.h&&S.day.h!==h)))return;var x=shiftInfo(d,h),r=rows[x.c];if(!r)return;r.sh++;if(x.has&&!x.here){r.cov++;x.cov.forEach(function(n){var f=n.split(" ")[0];r.who[f]=(r.who[f]||0)+1})}})});
+  ev.forEach(function(e){var r=rows[crewFor(e.day,e.night?"N":"D")];if(r)r.ev.push(e)});
+  D.forEach(function(d){var r=rows[crewFor(d.day,d.night?"N":"D")];if(r)r.del++});
+  $("crews").innerHTML=["A","B","C","D"].map(function(c){var r=rows[c],inc=incCount(R,r.ev),who=Object.keys(r.who).map(function(n){return n+" ×"+r.who[n]}).join(", ");
+    var tip="Crew member: "+CREWS[c]+" · cycle fit "+(FIT[c]||"–")+" roster shifts"+(r.cov?" · "+r.cov+" shift"+(r.cov>1?"s":"")+" covered"+(who?" by "+who:""):"");
+    return '<button data-c="'+c+'"'+(S.crew===c?' class="on" aria-pressed="true"':' aria-pressed="false"')+' title="'+esc(tip)+'"><span class="L">'+c+'</span><span class="t"><b>'+inc+' incident'+(inc===1?"":"s")+'</b> in '+r.sh+' shift'+(r.sh===1?"":"s")+(r.sh?' ('+(inc/r.sh).toFixed(1)+' a shift)':'')+'<br>'+r.del+' deleted'+(r.cov?' · '+r.cov+' covered':'')+'</span></button>'}).join("");
+  $("crews").querySelectorAll("button").forEach(function(b){b.onclick=function(){S.crew=S.crew===b.dataset.c?null:b.dataset.c;S.sel=null;render()}});
+}
+function groupBy(R,ev,keyFn){var g={};ev.forEach(function(e){var k=keyFn(e);(g[k]=g[k]||{key:k,ev:[]}).ev.push(e)});
+  return Object.keys(g).map(function(k){var x=g[k];x.f=x.ev.filter(function(e){return e.sev==="fault"}).length;x.w=x.ev.filter(function(e){return e.sev==="warn"}).length;x.i=x.ev.length-x.f-x.w;x.down=x.ev.reduce(function(a,e){return a+(e.rule.indexOf("st:")===0?(e.downMs||0):0)},0);return x})
+  .sort(function(a,b){return b.f-a.f||b.w-a.w||b.down-a.down||b.i-a.i})}
+function cnts(x){var p=[];if(x.inc)p.push('<span class="f">'+x.inc+' incident'+(x.inc>1?"s":"")+'</span>');if(x.f)p.push('<span class="f">'+x.f+' fault'+(x.f>1?"s":"")+'</span>');if(x.w)p.push('<span class="w">'+x.w+' warning'+(x.w>1?"s":"")+'</span>');if(x.i)p.push(x.i+' info');if(x.down)p.push(dur(x.down)+' out of auto');return p.join(" · ")||"nothing"}
+function renderList(groups,labelFn,codeFn){
+  var mx=Math.max.apply(null,groups.map(function(g){return g.down}).concat([1]));
+  if(!groups.length){$("list").innerHTML='<p style="padding:14px" class="muted">Nothing to show'+(S.info?"":" – tick Show information items to see routine messages")+'.</p>';$("detail").innerHTML="";return false}
+  if(!S.sel||!groups.some(function(g){return g.key===S.sel}))S.sel=groups[0].key;
+  $("list").innerHTML=groups.map(function(g){return '<button data-k="'+esc(g.key)+'"'+(g.key===S.sel?' class="on" aria-current="true"':'')+'><div class="nm" title="'+esc(codeFn(g))+'">'+esc(labelFn(g))+'</div><div class="ct">'+cnts(g)+'</div>'+(g.down?'<div class="dbar"><i style="width:'+Math.max(3,g.down/mx*100)+'%"></i></div>':'')+'</button>'}).join("");
+  $("list").querySelectorAll("button").forEach(function(b){b.onclick=function(){S.sel=b.dataset.k;S.open={};render()}});
+  return true;
+}
+function renderEq(R,ev){
+  var groups=groupBy(R,ev,function(e){return eqOf(R,e).key});
+  groups.forEach(function(g){g.incs=incidents(g.ev);g.inc=g.incs.length});
+  groups.sort(function(a,b){return b.inc-a.inc||b.f-a.f||b.w-a.w||b.down-a.down||b.i-a.i});
+  if(!renderList(groups,function(g){return eqOf(R,g.ev[0]).label},function(g){return eqOf(R,g.ev[0]).code}))return;
+  var g=groups.filter(function(x){return x.key===S.sel})[0],q=eqOf(R,g.ev[0]);
+  var types=groupBy(R,g.ev,function(e){return e.sev+"|"+e.title}).sort(function(a,b){return SEVW[a.ev[0].sev]-SEVW[b.ev[0].sev]||b.ev.length-a.ev.length});
+  $("detail").innerHTML='<h2>'+codeSpan(q.label,q.code)+'</h2><div class="sub">'+cnts(g)+'</div>'+incCard(R,g)+types.map(function(t){return card(R,t,false)}).join("");
+  wireCards(R,types);
+}
+function renderFault(R,ev){
+  var groups=groupBy(R,ev,function(e){return e.sev+"|"+e.title}).sort(function(a,b){return SEVW[a.ev[0].sev]-SEVW[b.ev[0].sev]||b.ev.length-a.ev.length});
+  if(!renderList(groups,function(g){return g.ev[0].title},function(g){return SEVT[g.ev[0].sev]}))return;
+  var g=groups.filter(function(x){return x.key===S.sel})[0];
+  var eqs={};g.ev.forEach(function(e){var q=eqOf(R,e);eqs[q.label]=(eqs[q.label]||0)+1});
+  $("detail").innerHTML='<h2>'+esc(g.ev[0].title)+'</h2><div class="sub">'+Object.keys(eqs).sort(function(a,b){return eqs[b]-eqs[a]}).map(function(k){return esc(k)+" ×"+eqs[k]}).join(" · ")+'</div>'+card(R,g,true);
+  wireCards(R,[g]);
+}
+function incCard(R,g){
+  if(!g.incs.length)return "";var key="inc:"+g.key,all=g.incs.slice().reverse(),show=S.open[key]?all:all.slice(0,8),sv=g.incs.some(function(i){return i.sev==="fault"})?"fault":"warn";
+  var h='<article class="card '+sv+'"><div class="ch"><span class="sev '+sv+'">Incidents</span><h3>'+g.incs.length+' incident'+(g.incs.length>1?"s":"")+'</h3><span class="meta">Faults and warnings less than 3 minutes apart count as one stop. Click a row for the full chain.</span></div>';
+  h+='<div class="tw"><table><thead><tr><th>When</th><th>Lasted</th><th>Started with</th><th>What followed</th></tr></thead><tbody>';
+  show.forEach(function(i){var id="i#"+g.key+"#"+i.ts,seen={},rest=[];i.ev.forEach(function(e){if(e!==i.start&&!seen[e.title]&&e.title!==i.start.title){seen[e.title]=1;rest.push(e.title)}});
+    var last=Math.max(i.end-i.ts,i.down);
+    h+='<tr class="occ" data-o="'+esc(id)+'" tabindex="0"><td style="white-space:nowrap">'+dn(i.start)+crewBadge(i.start)+when(i.ts)+'</td><td style="white-space:nowrap">'+(last>0?dur(last):"a moment")+'</td><td><span class="sev '+i.start.sev+'">'+SEVT[i.start.sev]+'</span> '+esc(i.start.title)+'</td><td class="chain">'+(rest.length?esc(rest.join(" → ")):"–")+'</td></tr>';
+    if(S.open[id]){h+='<tr><td colspan="4"><div class="near"><b>Chain</b><ul>'+i.ev.map(function(e){return '<li>'+new Date(e.ts).toTimeString().slice(0,8)+' – '+esc(e.title)+(e.count>1?' ×'+e.count:'')+' <span class="sev '+e.sev+'">'+SEVT[e.sev]+'</span></li>'}).join("")+'</ul>';
+      var ops=R.ops.filter(function(o){return o.ts>=i.ts-60000&&o.ts<=i.end+300000});
+      if(ops.length)h+='<b>Operator actions</b><ul>'+ops.map(function(o){return '<li>'+new Date(o.ts).toTimeString().slice(0,8)+' · “'+esc(o.cmd)+'” to '+codeSpan(PFD.unitName(R.N,o.unit)||"unit "+o.unit,"Unit "+o.unit)+'</li>'}).join("")+'</ul>';
+      h+='</div></td></tr>'}});
+  h+='</tbody></table></div>';
+  if(all.length>8)h+='<button class="more" data-t="'+esc(key)+'">'+(S.open[key]?"Show latest 8":"Show all "+all.length)+'</button>';
+  return h+'</article>'}
+function card(R,t,showEq){
+  var e=t.ev[t.ev.length-1],n=t.ev.length,rep=t.ev.reduce(function(a,x){return a+x.count},0),k=esc(t.key);
+  var down=t.ev.reduce(function(a,x){return a+(x.downMs||0)},0);
+  var meta=n+" time"+(n>1?"s":"")+(rep>n?" ("+rep+" log lines)":"")+(down?" · "+dur(down)+" out of automatic":"")+" · last "+when(e.ts);
+  var h='<article class="card '+e.sev+'"><div class="ch"><span class="sev '+e.sev+'">'+SEVT[e.sev]+'</span><h3>'+esc(e.title)+'</h3><span class="meta">'+meta+'</span></div>'+
+    '<div class="three"><div><h4>What happened'+(n>1?" (latest)":"")+'</h4><p>'+fill(R,e,e.h)+'</p></div><div><h4>Likely cause</h4><p>'+esc(e.c)+'</p></div><div><h4>What to check</h4><p>'+esc(e.k)+'</p></div></div>';
+  h+='<button class="more" data-t="'+k+'" aria-expanded="'+(!!S.open[t.key])+'">'+(S.open[t.key]?"Hide":"Show")+" "+(n>1?"all "+n+" times":"the log entry")+'</button>';
+  if(S.open[t.key]){
+    h+='<div class="tw"><table><thead><tr><th>When</th>'+(showEq?'<th>Equipment</th>':'')+'<th>Detail</th><th>Lasted</th></tr></thead><tbody>';
+    t.ev.slice().reverse().forEach(function(x,i){var id=t.key+"#"+x.ts+"#"+i,q=eqOf(R,x);
+      h+='<tr class="occ" data-o="'+esc(id)+'" tabindex="0"><td style="white-space:nowrap">'+dn(x)+crewBadge(x)+when(x.ts)+'</td>'+(showEq?'<td>'+codeSpan(q.label,q.code)+'</td>':'')+'<td>'+fill(R,x,x.h)+(x.count>1?' <b>×'+x.count+'</b> until '+new Date(x.tsLast).toTimeString().slice(0,5):'')+(x.ops?'<br><span class="muted">Operator: '+esc(x.ops.join(", "))+'</span>':'')+'</td><td style="white-space:nowrap">'+(x.downMs!=null?dur(x.downMs)+(x.openEnd?" (still out at end of log)":""):"")+'</td></tr>';
+      if(S.open[id])h+='<tr><td colspan="'+(showEq?4:3)+'">'+nearby(R,x)+'</td></tr>'});
+    h+='</tbody></table></div>';
+  }
+  return h+'</article>';
+}
+function nearby(R,x){
+  var lo=x.ts-120000,hi=(x.tsLast||x.ts)+120000;
+  var ev=R.events.filter(function(e){return e!==x&&e.ts>=lo&&e.ts<=hi}).slice(0,25);
+  var ops=R.ops.filter(function(o){return o.ts>=lo&&o.ts<=hi});
+  var h='<div class="near"><b>Within 2 minutes</b>';
+  if(!ev.length&&!ops.length)h+='<p class="muted" style="margin:4px 0">Nothing else was logged.</p>';
+  else{h+='<ul>';
+    ev.forEach(function(e){var q=eqOf(R,e);h+='<li>'+new Date(e.ts).toTimeString().slice(0,8)+' · '+codeSpan(q.label,q.code)+' – '+esc(e.title)+' <span class="sev '+e.sev+'">'+SEVT[e.sev]+'</span></li>'});
+    ops.forEach(function(o){h+='<li>'+new Date(o.ts).toTimeString().slice(0,8)+' · Operator sent “'+esc(o.cmd)+'” to '+codeSpan(PFD.unitName(R.N,o.unit)||"unit "+o.unit,"Unit "+o.unit)+'</li>'});
+    h+='</ul>'}
+  return h+'<b>Log line</b><code>'+esc(x.raw)+'</code></div>';
+}
+function wireCards(R,types){
+  $("detail").querySelectorAll(".more").forEach(function(b){b.onclick=function(){S.open[b.dataset.t]=!S.open[b.dataset.t];render()}});
+  $("detail").querySelectorAll("tr.occ").forEach(function(r){var f=function(){S.open[r.dataset.o]=!S.open[r.dataset.o];render()};r.onclick=f;r.onkeydown=function(ev){if(ev.key==="Enter")f()}});
+}
+function renderDels(R,D){
+  if(!D.length){$("dels").innerHTML='<h2>Deleted by operators</h2><p class="muted">No operator deletions'+(S.day?" in this shift":"")+'.</p>';return}
+  var g={};D.forEach(function(d){var x=PFD.posName(R.N,d.pos),lab=x?x.unitName+(x.spot?" – "+x.spot:""):"Place "+d.pos;(g[lab]=g[lab]||{lab:lab,pos:{},l:[]}).l.push(d);g[lab].pos[d.pos]=1});
+  var arr=Object.keys(g).map(function(k){return g[k]}).sort(function(a,b){return b.l.length-a.l.length});
+  var h='<h2>Deleted by operators</h2><p class="muted" style="margin:0 0 10px">Tags an operator removed by hand. Many deletions at one place usually means samples get stuck there.</p>';
+  arr.forEach(function(a){var dN=a.l.filter(function(d){return d.night}).length,kinds={};a.l.forEach(function(d){var k=d.tagShort.replace(/^\d{8}-/,"…-").replace(/\d{6,}/g,"#");kinds[k]=(kinds[k]||0)+1});
+    var key="del:"+a.lab;
+    h+='<div class="drow"><div class="dh"><b>'+codeSpan(a.lab,"Position "+Object.keys(a.pos).join(", "))+'</b>'+Object.keys(a.pos).slice(0,3).map(function(p){return PFD.routeLink(R.N,p)}).join("")+'<span class="muted">'+(a.l.length-dN)+' day · '+dN+' night · '+Object.keys(kinds).slice(0,4).map(esc).join(", ")+'</span><span class="n">'+a.l.length+'</span></div>'+
+      '<button class="more" data-dl="'+esc(key)+'">'+(S.open[key]?"Hide times":"Show times")+'</button>'+
+      (S.open[key]?'<div class="tw"><table><tbody>'+a.l.slice().reverse().map(function(d){return '<tr><td style="white-space:nowrap">'+dn(d)+crewBadge(d)+when(d.ts)+'</td><td>'+esc(d.tag)+'</td><td class="muted">'+(d.what==="sample"?"sample":"worksheet")+'</td></tr>'}).join("")+'</tbody></table></div>':'')+'</div>'});
+  $("dels").innerHTML=h;
+  $("dels").querySelectorAll("[data-dl]").forEach(function(b){b.onclick=function(){S.open[b.dataset.dl]=!S.open[b.dataset.dl];render()}});
+}
+
+/* ---------- controls ---------- */
+$("view").querySelectorAll("button").forEach(function(b){b.onclick=function(){$("view").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b)});S.view=b.dataset.v;S.sel=null;S.open={};render()}});
+$("q").oninput=function(){S.q=this.value;S.sel=null;render()};
+$("showInfo").onchange=function(){S.info=this.checked;render()};
+$("bCsv").onclick=function(){
+  var R=S.runs[S.m];if(!R)return;
+  var rows=[["Machine","Date","Time","Shift day","Shift","Crew","Equipment","Code","Type","Fault","Repeats","Out of automatic (min)","What happened","Likely cause","What to check","Log line"]];
+  visible(R).forEach(function(e){var q=eqOf(R,e),d=new Date(e.ts);rows.push([S.m,d.toLocaleDateString("en-CA"),d.toTimeString().slice(0,8),e.day,e.night?"Night":"Day",crewFor(e.day,e.night?"N":"D"),q.label,q.code,SEVT[e.sev],e.title,e.count,e.downMs!=null?(e.downMs/60000).toFixed(1):"",strip(fill(R,e,e.h)),e.c,e.k,e.raw])});
+  var csv=rows.map(function(r){return r.map(function(v){v=String(v==null?"":v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(",")}).join("\r\n");
+  var name="Prepmaster_Faults_"+S.m+"_"+new Date().toISOString().slice(0,10)+".csv";
+  try{var a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv"}));a.download=name;document.body.appendChild(a);a.click();a.remove()}catch(err){}
+  try{navigator.clipboard&&navigator.clipboard.writeText(csv)}catch(err){}
+};
+window.PFD_APP={S:S,readLogs:readLogs,render:render};
+})();
+</script>
+</body>
+</html>
